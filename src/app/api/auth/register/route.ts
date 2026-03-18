@@ -6,35 +6,61 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    const { username, phone, password } = await request.json();
+    const body = await request.json();
+    const { phone, password, username, referralCode } = body;
 
-    if (!username || !phone || !password) {
-      return NextResponse.json({ error: 'Username, phone, and password are required' }, { status: 400 });
-    }
-
-    // Check if user exists
+    // Check if user already exists
     const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ username }, { phone }]
-      }
+      where: { OR: [{ phone }, { username }] }
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: 'Username or phone already registered' }, { status: 400 });
+      if (existingUser.phone === phone) return NextResponse.json({ error: 'Phone number already registered' }, { status: 400 });
+      if (existingUser.username === username) return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
     }
 
-    // Hash Password
+    // Verify valid referrer if code provided
+    let validReferrer = null;
+    if (referralCode && referralCode.trim() !== '') {
+      validReferrer = await prisma.user.findUnique({ where: { username: referralCode.trim() } });
+    }
+
+    // Hash the password securely
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create User
+    // Create the user
     const user = await prisma.user.create({
       data: {
-        username,
         phone,
         password: hashedPassword,
-        walletBalance: 0,
+        username,
+        referredBy: validReferrer ? validReferrer.username : null
       }
     });
+
+    // If there is a valid referrer, credit them instantly with Rs. 10 referral bonus
+    if (validReferrer) {
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: validReferrer.id },
+          data: {
+            walletBalance: { increment: 10 },
+            referralEarnings: { increment: 10 }
+          }
+        }),
+        prisma.transaction.create({
+          data: {
+            userId: validReferrer.id,
+            amount: 10,
+            type: 'REFERRAL_BONUS',
+            status: 'SUCCESS'
+          }
+        })
+      ]).catch((err) => {
+        // Log the error but don't fail the registration
+        console.error('Failed to credit referrer:', err);
+      });
+    }
 
     // Generate JWT & Set Cookie
     const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'skillspin_default_secret_key_2026');

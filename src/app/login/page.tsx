@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { Phone, Lock, ChevronLeft, Gamepad2, User } from 'lucide-react';
@@ -17,6 +17,16 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [referralCode, setReferralCode] = useState(''); // Added referralCode state
+
+  // Auto-fill referral code from URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref) setReferralCode(ref);
+    }
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +74,7 @@ export default function Login() {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, phone, password }),
+          body: JSON.stringify({ username, phone, password, referralCode }), // Added referralCode
         });
         const data = await res.json();
         
@@ -118,21 +128,37 @@ export default function Login() {
 
           {/* Phone Field (Only for Signup) */}
           {!isLogin && (
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Mobile Number</label>
-              <div className={styles.inputWrapper}>
-                <Phone size={18} className={styles.iconPrefix} />
-                <input 
-                  type="tel" 
-                  placeholder="Enter 10-digit number" 
-                  className={`input-glass ${styles.inputWithIcon}`}
-                  required
-                  maxLength={10}
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
+            <>
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>Mobile Number</label>
+                <div className={styles.inputWrapper}>
+                  <Phone size={18} className={styles.iconPrefix} />
+                  <input 
+                    type="tel" 
+                    placeholder="Enter 10-digit number" 
+                    className={`input-glass ${styles.inputWithIcon}`}
+                    required
+                    maxLength={10}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
+
+              {/* Referral Code Field (Only for Signup) */}
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>Referral Code (Optional)</label>
+                <div className={styles.inputWrapper}>
+                  <input
+                    type="text"
+                    placeholder="Enter friend's username"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value)}
+                    className={`input-glass ${styles.inputWithIcon}`} // Added input-glass and inputWithIcon classes
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           {/* Password Field */}
