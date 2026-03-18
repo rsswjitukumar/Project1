@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { SignJWT } from 'jose';
 
 export async function POST(request: Request) {
   try {
@@ -54,7 +56,24 @@ export async function POST(request: Request) {
       });
     }
 
-    // 4. Return Session Data
+    // 4. Generate JWT & Set Cookie
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'skillspin_default_secret_key_2026');
+    const token = await new SignJWT({ id: user.id, phone: user.phone })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('7d')
+      .sign(secret);
+
+    const cookieStore = await cookies();
+    cookieStore.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/'
+    });
+
+    // 5. Return Session Data
     return NextResponse.json({ 
       success: true, 
       user: {
