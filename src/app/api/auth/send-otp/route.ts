@@ -45,32 +45,36 @@ export async function POST(request: Request) {
       },
     });
 
-    // 3. Trigger SMS via Fast2SMS (or fallback to console)
-    const SMS_API_KEY = process.env.FAST2SMS_API_KEY;
-    if (SMS_API_KEY) {
-      console.log(`[REAL_SMS] Sending ${otpCode} to ${phone} via Fast2SMS`);
+    // 3. Trigger WhatsApp Message (from 9911886585)
+    // To send from a specific number, you must be using a WhatsApp API provider
+    // (like Meta Cloud API, UltraMsg, Wati, Twilio, etc.)
+    const WA_API_URL = process.env.WA_API_URL;
+    const WA_API_KEY = process.env.WA_API_KEY;
+    
+    if (WA_API_URL && WA_API_KEY) {
+      console.log(`[REAL_WHATSAPP] Sending ${otpCode} to ${phone} from 9911886585`);
       try {
-        const smsRes = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+        // This is a generic REST call for most WhatsApp gateways (e.g. UltraMsg/ChatAPI)
+        // If you are using official Meta API, the body structure changes slightly (needs App templates).
+        const waRes = await fetch(WA_API_URL, {
           method: 'POST',
           headers: {
-            'authorization': SMS_API_KEY,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            route: 'otp',
-            variables_values: otpCode,
-            numbers: phone
+            token: WA_API_KEY,      // Common for unofficial APIs
+            to: `91${phone}`,       // Indian country code prefix
+            body: `Welcome to SkillSpin Arena! Your OTP is: *${otpCode}*. Please do not share this with anyone.`
           })
         });
-        const smsData = await smsRes.json();
-        if (!smsData.return) {
-          console.error("Fast2SMS Error:", smsData);
-        }
-      } catch (smsErr) {
-        console.error("Fast2SMS Network Error:", smsErr);
+        
+        const waData = await waRes.json();
+        console.log("WhatsApp API Response:", waData);
+      } catch (waErr) {
+        console.error("WhatsApp Network Error:", waErr);
       }
     } else {
-      console.log(`[WHATSAPP_OTP_MOCK] Sending ${otpCode} to ${phone} (Set FAST2SMS_API_KEY in .env for real SMS)`);
+      console.log(`[WHATSAPP_OTP_MOCK] Sending ${otpCode} to ${phone} from 9911886585 (Set WA_API_URL & WA_API_KEY in .env)`);
     }
 
     return NextResponse.json({ 
