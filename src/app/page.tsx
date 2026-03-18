@@ -9,18 +9,39 @@ import {
   Gamepad2, Coins, Play, Loader, 
   Target, Home as HomeIcon, Gift
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
   const [balance, setBalance] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setBalance(parsedUser.balance || 0);
-    }
-  }, []);
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/user/profile');
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+          setBalance(data.user.walletBalance);
+        } else {
+          // Kick to login if unauthorized
+          router.push('/login');
+        }
+      } catch (e) {
+        toast.error('Failed to authenticate');
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [router]);
+
+  if (isLoading) {
+    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-accent)' }}>Loading Arena...</div>;
+  }
 
   return (
     <div className={styles.container}>
@@ -178,7 +199,7 @@ export default function Home() {
           <Gift className={styles.navIcon} size={24} />
           <span>Refer</span>
         </div>
-        <Link href="/login" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
+        <Link href="/profile" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
           <div className={styles.navItem}>
             <UserCircle className={styles.navIcon} size={24} />
             <span>Profile</span>
