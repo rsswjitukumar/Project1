@@ -46,6 +46,30 @@ export default function AdminDashboard() {
       if (res.ok) setMatchList((await res.json()).matches);
     } catch(e) {}
   };
+
+  const handleUserAction = async (userId: string, action: string) => {
+    if (!confirm(`Are you absolutely sure you want to ${action} this user?`)) return;
+    try {
+      const res = await fetch('/api/admin/users/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (action === 'RESET_PASSWORD') {
+           toast.success(`PASSWORD RESET! New PIN: ${data.newPassword}`, { duration: 15000, icon: '🔑' });
+        } else {
+           toast.success(data.message);
+           fetchUsers(); 
+        }
+      } else {
+        toast.error(data.error || 'Execution failed');
+      }
+    } catch(e) {
+      toast.error('Network connection disrupted. Reverting.');
+    }
+  };
   
   // Base initialization mapping JWT securely overriding states via native headers
   useEffect(() => {
@@ -187,27 +211,36 @@ export default function AdminDashboard() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead style={{ background: 'rgba(255,255,255,0.05)' }}>
                   <tr>
-                    <th style={{ padding: '16px', color: '#9da3b9' }}>User ID</th>
+                    <th style={{ padding: '16px', color: '#9da3b9' }}>Full Unique ID</th>
                     <th style={{ padding: '16px', color: '#9da3b9' }}>Username</th>
                     <th style={{ padding: '16px', color: '#9da3b9' }}>Phone</th>
                     <th style={{ padding: '16px', color: '#9da3b9' }}>Wallet</th>
                     <th style={{ padding: '16px', color: '#9da3b9' }}>Role</th>
+                    <th style={{ padding: '16px', color: '#9da3b9' }}>Admin Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {usersList.map((u: any) => (
-                    <tr key={u.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={{ padding: '16px', fontSize: '0.85rem', color: '#9da3b9', fontFamily: 'monospace' }}>{u.id.substring(0, 8)}...</td>
+                    <tr key={u.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: u.role === 'BANNED' ? 'rgba(239, 68, 68, 0.05)' : 'transparent' }}>
+                      <td style={{ padding: '16px', fontSize: '0.75rem', color: '#9da3b9', fontFamily: 'monospace', letterSpacing: '0.5px' }}>{u.id}</td>
                       <td style={{ padding: '16px', fontWeight: 'bold' }}>@{u.username}</td>
                       <td style={{ padding: '16px' }}>{u.phone}</td>
                       <td style={{ padding: '16px', color: '#10b981', fontWeight: 'bold' }}>₹{u.walletBalance.toFixed(2)}</td>
                       <td style={{ padding: '16px' }}>
-                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', background: u.role === 'ADMIN' ? 'rgba(255,0,128,0.2)' : 'rgba(255,255,255,0.1)', color: u.role === 'ADMIN' ? '#ff0080' : 'white', fontWeight: 'bold' }}>{u.role}</span>
+                        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', background: u.role === 'ADMIN' ? 'rgba(255,0,128,0.2)' : (u.role === 'BANNED' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.1)'), color: u.role === 'ADMIN' ? '#ff0080' : (u.role === 'BANNED' ? '#ef4444' : 'white'), fontWeight: 'bold' }}>{u.role}</span>
+                      </td>
+                      <td style={{ padding: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                         <button onClick={() => handleUserAction(u.id, 'RESET_PASSWORD')} className="btn btn-outline" style={{ padding: '6px 10px', fontSize: '0.75rem', borderColor: 'rgba(255,255,255,0.2)', color: 'white' }}>Reset Pass</button>
+                         {u.role === 'BANNED' ? (
+                           <button onClick={() => handleUserAction(u.id, 'UNBLOCK')} className="btn" style={{ padding: '6px 10px', fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', border: '1px solid #10b981' }}>Unblock</button>
+                         ) : (
+                           <button onClick={() => handleUserAction(u.id, 'BLOCK')} className="btn" style={{ padding: '6px 10px', fontSize: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.5)' }}>Block</button>
+                         )}
                       </td>
                     </tr>
                   ))}
                   {usersList.length === 0 && (
-                    <tr><td colSpan={5} style={{ padding: '20px', textAlign: 'center', color: '#9da3b9' }}>No users found in database.</td></tr>
+                    <tr><td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: '#9da3b9' }}>No users found in database.</td></tr>
                   )}
                 </tbody>
               </table>
