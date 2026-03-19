@@ -215,7 +215,7 @@ export default function TargetTap() {
             {gameState === 'processing' ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', border: '4px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--primary-accent)', animation: 'spin 1s linear infinite' }} />
-                <h2 style={{ mt: '20px', color: 'var(--text-secondary)' }}>Verifying Score API...</h2>
+                <h2 style={{ marginTop: '20px', color: 'var(--text-secondary)' }}>Verifying Score API...</h2>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'fadeIn 0.5s ease-out' }}>

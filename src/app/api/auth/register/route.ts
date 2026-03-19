@@ -53,7 +53,8 @@ export async function POST(request: Request) {
             userId: validReferrer.id,
             amount: 10,
             type: 'REFERRAL_BONUS',
-            status: 'SUCCESS'
+            status: 'SUCCESS',
+            gateway: 'SYSTEM'
           }
         })
       ]).catch((err) => {

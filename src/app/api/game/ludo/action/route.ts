@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       if (!match || match.status !== 'PLAYING') return NextResponse.json({ error: 'Invalid match' }, { status: 400 });
       if (match.player1Id !== userId && match.player2Id !== userId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
+      // @ts-ignore
       let state = JSON.parse(match.gameState || '{}');
 
       if (state.winnerId) return NextResponse.json({ error: 'Game already finished' }, { status: 400 });
@@ -104,7 +105,8 @@ export async function POST(request: Request) {
                userId: state.winnerId,
                amount: winAmount,
                type: 'MATCH_WIN',
-               status: 'SUCCESS'
+               status: 'SUCCESS',
+               gateway: 'SYSTEM'
              }
            });
         }

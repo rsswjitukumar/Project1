@@ -217,7 +217,7 @@ export default function SpinWheel() {
           <div style={{ marginTop: '40px', textAlign: 'center', animation: 'bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
             {showResult.multi > 0 ? (
               <div style={{ background: 'linear-gradient(45deg, rgba(16,185,129,0.1), rgba(16,185,129,0.2))', padding: '20px 40px', borderRadius: '20px', border: '1px solid rgba(16,185,129,0.4)' }}>
-                <Trophy size={48} color="#10b981" style={{ marginBottom: '15px', dropShadow: '0 0 10px rgba(16,185,129,0.8)' }} />
+                <Trophy size={48} color="#10b981" style={{ marginBottom: '15px', filter: 'drop-shadow(0 0 10px rgba(16,185,129,0.8))' }} />
                 <h2 style={{ fontSize: '3rem', fontWeight: '900', color: '#10b981', textShadow: '0 0 30px rgba(16,185,129,0.5)', margin: 0 }}>+₹{showResult.win.toFixed(2)}</h2>
                 <div style={{ fontSize: '1.3rem', color: '#fff', marginTop: '10px', fontWeight: 'bold' }}>{showResult.multi}x Multiplier Hit!</div>
               </div>

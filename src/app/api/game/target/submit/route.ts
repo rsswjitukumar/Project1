@@ -60,7 +60,8 @@ export async function POST(request: Request) {
           userId,
           amount: Math.abs(profitAdjustment),
           type: profitAdjustment >= 0 ? 'TARGET_WIN' : 'TARGET_LOSS',
-          status: 'SUCCESS'
+          status: 'SUCCESS',
+          gateway: 'SYSTEM'
         }
       });
 

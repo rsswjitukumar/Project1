@@ -62,6 +62,8 @@ model Match {
   player2Id String?
   player2   User?    @relation("Player2Matches", fields: [player2Id], references: [id])
   
+  gameState String?  @default("{}")
+  
   winnerId  String?
   winner    User?    @relation("MatchWinner", fields: [winnerId], references: [id])
   
