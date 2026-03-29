@@ -38,7 +38,6 @@ export default function TargetTap() {
     setScore(0);
     setTimeLeft(15.0);
     setGameState('playing');
-    moveTarget();
     
     startTimeRef.current = Date.now();
     
@@ -104,11 +103,12 @@ export default function TargetTap() {
 
   const moveTarget = () => {
     if (!gameAreaRef.current) return;
+    
     // Calculate physical bounding boxes keeping targets cleanly inside viewport
     const paddingX = 40; 
     const paddingY = 80;
-    const width = gameAreaRef.current.clientWidth - paddingX * 2;
-    const height = gameAreaRef.current.clientHeight - paddingY * 2;
+    const width = Math.max(100, gameAreaRef.current.clientWidth - paddingX * 2);
+    const height = Math.max(100, gameAreaRef.current.clientHeight - paddingY * 2);
     
     const randomX = Math.floor(Math.random() * width) + paddingX;
     const randomY = Math.floor(Math.random() * height) + paddingY;
@@ -116,24 +116,34 @@ export default function TargetTap() {
     setTargetPos({ top: `${randomY}px`, left: `${randomX}px` });
   };
 
+  // Add initial moveTarget call once mounted in 'playing' state
+  useEffect(() => {
+    if (gameState === 'playing') {
+      const timer = setTimeout(() => {
+        moveTarget();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState]);
+
   // Housekeeping
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', background: 'var(--bg-dark)', minHeight: '100vh', color: 'white', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', background: 'radial-gradient(ellipse at bottom, #111827, #000000)', minHeight: '100vh', color: 'white', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif' }}>
       
       {/* Universal Safe Header */}
-      <div style={{ padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', zIndex: 50 }}>
-        <button onClick={() => router.push('/')} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
-          <ChevronLeft size={28} />
+      <div style={{ padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(255,255,255,0.1)', zIndex: 50 }}>
+        <button onClick={() => router.push('/')} style={{ background: 'rgba(255,255,255,0.1)', padding: '8px', borderRadius: '50%', border: 'none', color: 'white', cursor: 'pointer', transition: 'background 0.2s' }}>
+          <ChevronLeft size={24} />
         </button>
-        <div style={{ fontWeight: 'bold', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Crosshair color="var(--accent-red)" size={20} /> Target Tap
+        <div style={{ fontWeight: '900', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px', textTransform: 'uppercase', letterSpacing: '1px', background: 'linear-gradient(90deg, #f87171, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Target Tap
         </div>
-        <div className="glass-panel" style={{ padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-gold)', fontWeight: 'bold' }}>
-          <Coins size={16} /> ₹{balance.toFixed(2)}
+        <div style={{ background: 'linear-gradient(135deg, #fbbf24, #d97706)', padding: '6px 16px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.9rem', boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Coins size={16} color="white" /> ₹{balance.toFixed(2)}
         </div>
       </div>
 
@@ -141,27 +151,39 @@ export default function TargetTap() {
         
         {/* GAME SETUP HUD */}
         {gameState === 'setup' && (
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, rgba(239, 68, 68, 0.15) 0%, transparent 80%)', padding: '20px' }}>
-            <Crosshair size={80} color="var(--accent-red)" style={{ filter: 'drop-shadow(0 0 20px rgba(239,68,68,0.5))', marginBottom: '20px' }} />
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>Fastest Fingers Win</h1>
-            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', maxWidth: '300px', marginBottom: '30px' }}>
-              Tap the moving target as fast as possible in 15 seconds. 60+ taps doubles your cash!
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, rgba(239, 68, 68, 0.15) 0%, transparent 80%)', padding: '20px', zIndex: 20 }}>
+            <div style={{ position: 'relative', marginBottom: '30px' }}>
+              <div style={{ position: 'absolute', inset: '-20px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.2)', animation: 'pulse-ring 2s infinite' }} />
+              <Crosshair size={90} color="#f87171" style={{ filter: 'drop-shadow(0 0 25px rgba(2ef,68,68,0.8))' }} />
+            </div>
+            
+            <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '10px', textAlign: 'center', textShadow: '0 4px 20px rgba(0,0,0,0.5)', lineHeight: 1.1 }}>
+               FASTEST <span style={{ color: '#ef4444' }}>FINGERS</span> WIN
+            </h1>
+            <p style={{ color: 'rgba(255,255,255,0.6)', textAlign: 'center', maxWidth: '350px', fontSize: '1rem', marginBottom: '40px', lineHeight: 1.5 }}>
+              Tap the moving target as fast as possible in 15 seconds. <strong style={{color: 'white'}}>60+ taps</strong> doubles your cash!
             </p>
             
-            <div className="glass-panel" style={{ display: 'flex', gap: '10px', padding: '15px', borderRadius: '15px', marginBottom: '30px' }}>
+            <div style={{ display: 'flex', gap: '15px', padding: '20px', borderRadius: '24px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', marginBottom: '40px' }}>
                {[10, 50, 100].map(amt => (
                 <button 
                   key={amt}
                   onClick={() => setBet(amt)}
-                  className={`btn ${bet === amt ? 'btn-primary' : 'btn-outline'}`}
-                  style={{ width: '80px', padding: '10px 0' }}
+                  style={{ 
+                    width: '90px', padding: '15px 0', borderRadius: '16px', fontSize: '1.2rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s',
+                    background: bet === amt ? 'linear-gradient(135deg, #ef4444, #b91c1c)' : 'rgba(0,0,0,0.5)', 
+                    color: bet === amt ? 'white' : 'rgba(255,255,255,0.6)',
+                    border: bet === amt ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                    boxShadow: bet === amt ? '0 10px 20px rgba(239, 68, 68, 0.4)' : 'none',
+                    transform: bet === amt ? 'scale(1.05)' : 'scale(1)'
+                  }}
                 >
                   ₹{amt}
                 </button>
                ))}
             </div>
 
-            <button onClick={startGame} className="btn" style={{ padding: '20px 40px', fontSize: '1.5rem', fontWeight: 'bold', background: 'linear-gradient(135deg, var(--accent-red), #991b1b)', boxShadow: '0 10px 30px rgba(239, 68, 68, 0.4)', textTransform: 'uppercase', letterSpacing: '2px' }}>
+            <button onClick={startGame} style={{ padding: '20px 60px', borderRadius: '30px', fontSize: '1.5rem', fontWeight: 900, background: 'linear-gradient(135deg, #f87171, #dc2626)', color: 'white', border: 'none', cursor: 'pointer', boxShadow: '0 15px 35px rgba(220, 38, 38, 0.5), inset 0 2px 10px rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '2px', transition: 'transform 0.2s' }} onMouseDown={e => e.currentTarget.style.transform = 'scale(0.95)'} onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}>
               Play Now
             </button>
           </div>
@@ -169,22 +191,30 @@ export default function TargetTap() {
 
         {/* ACTIVE PLAY ARENA */}
         {gameState === 'playing' && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
+            
+            {/* Background Radar Animation */}
+            <div style={{ position: 'absolute', top: '50%', left: '50%', width: '150vh', height: '150vh', marginLeft: '-75vh', marginTop: '-75vh', background: 'conic-gradient(from 0deg, transparent 70%, rgba(239, 68, 68, 0.1) 100%)', borderRadius: '50%', animation: 'radar 4s linear infinite', zIndex: 0, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.8) 100%)', zIndex: 1, pointerEvents: 'none' }} />
+
             {/* Live Dashboard metrics */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px', background: 'rgba(0,0,0,0.5)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 30px', background: 'rgba(0,0,0,0.6)', borderBottom: '1px solid rgba(255,255,255,0.05)', zIndex: 10, backdropFilter: 'blur(5px)' }}>
                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                 <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>TIME LEFT</span>
-                 <span style={{ fontSize: '2rem', fontWeight: 'bold', fontFamily: 'monospace', color: timeLeft <= 5 ? 'var(--accent-red)' : 'white' }}>{timeLeft.toFixed(2)}s</span>
+                 <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '1px' }}>TIME LEFT</span>
+                 <span style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'monospace', color: timeLeft <= 5 ? '#f87171' : 'white', textShadow: timeLeft <= 5 ? '0 0 20px rgba(248,113,113,0.8)' : 'none' }}>
+                   {timeLeft.toFixed(2)}<span style={{fontSize: '1rem'}}>s</span>
+                 </span>
                </div>
                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                 <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>SCORE</span>
-                 <span style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>{score}</span>
+                 <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '1px' }}>SCORE</span>
+                 <span style={{ fontSize: '3rem', fontWeight: 900, color: '#fbbf24', textShadow: '0 0 20px rgba(251,191,36,0.6)', lineHeight: 1 }}>{score}</span>
                </div>
             </div>
 
             {/* Target Touch Surface Grid */}
-            <div ref={gameAreaRef} style={{ flex: 1, position: 'relative', overflow: 'hidden', touchAction: 'manipulation' }}>
-               {/* The moving target specifically mapped natively using X,Y state translations */}
+            <div ref={gameAreaRef} style={{ flex: 1, position: 'relative', overflow: 'hidden', touchAction: 'manipulation', zIndex: 10 }}>
+               
+               {/* The glowing target */}
                <button
                  onMouseDown={handleTap}
                  onTouchStart={handleTap}
@@ -192,56 +222,61 @@ export default function TargetTap() {
                    position: 'absolute',
                    top: targetPos.top, left: targetPos.left,
                    transform: 'translate(-50%, -50%)',
-                   width: '80px', height: '80px',
+                   width: '90px', height: '90px',
                    borderRadius: '50%',
-                   background: 'radial-gradient(circle at center, var(--accent-red) 30%, #450a0a 100%)',
-                   border: '4px solid white',
-                   boxShadow: '0 0 20px rgba(239,68,68,0.8), inset 0 0 10px rgba(0,0,0,0.5)',
+                   background: 'radial-gradient(circle at center, #f87171 20%, #b91c1c 80%, #450a0a 100%)',
+                   border: '6px solid white',
+                   boxShadow: '0 0 30px rgba(239,68,68,1), inset 0 0 15px rgba(0,0,0,0.6), 0 0 0 15px rgba(239,68,68,0.2)',
                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                   cursor: 'pointer', transition: 'none', // Removed transition to make it strictly instant teleports preventing macro sliding
-                   outline: 'none', padding: 0
+                   cursor: 'crosshair', transition: 'none',
+                   outline: 'none', padding: 0,
                  }}
                >
-                 <TargetIcon size={40} color="white" />
+                 <div style={{ position: 'absolute', inset: '5px', borderRadius: '50%', border: '2px dashed rgba(255,255,255,0.5)', animation: 'radar 10s linear infinite' }} />
+                 <TargetIcon size={45} color="white" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
                </button>
+
             </div>
           </div>
         )}
 
         {/* PROCESSING & RESULTS UI */}
         {(gameState === 'processing' || gameState === 'result') && (
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)', padding: '20px' }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)', padding: '20px', zIndex: 100 }}>
             
             {gameState === 'processing' ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', border: '4px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--primary-accent)', animation: 'spin 1s linear infinite' }} />
-                <h2 style={{ marginTop: '20px', color: 'var(--text-secondary)' }}>Verifying Score API...</h2>
+                <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '6px solid rgba(255,255,255,0.05)', borderTopColor: '#f87171', animation: 'radar 1s linear infinite' }} />
+                <h2 style={{ marginTop: '25px', color: 'rgba(255,255,255,0.6)', fontWeight: 600, letterSpacing: '1px' }}>Verifying Taps...</h2>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'fadeIn 0.5s ease-out' }}>
-                <div style={{ marginBottom: '30px', position: 'relative' }}>
-                  <Crosshair size={100} color={resultData?.winAmount > 0 ? "var(--accent-green)" : "var(--accent-red)"} />
-                  {resultData?.winAmount > 0 && <Zap size={40} color="var(--accent-gold)" style={{ position: 'absolute', top: '-10px', right: '-10px' }} />}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'pulse-ring 0.5s ease-out forwards', background: 'rgba(255,255,255,0.03)', padding: '40px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
+                <div style={{ marginBottom: '20px', position: 'relative' }}>
+                  <Crosshair size={90} color={resultData?.winAmount > 0 ? "#10b981" : "#ef4444"} style={{ filter: `drop-shadow(0 0 20px ${resultData?.winAmount > 0 ? '#10b981' : '#ef4444'})` }} />
+                  {resultData?.winAmount > 0 && <Zap size={35} color="#fbbf24" style={{ position: 'absolute', top: '-5px', right: '-15px', animation: 'pulse-ring 2s infinite' }} />}
                 </div>
 
-                <h1 style={{ fontSize: '3rem', color: resultData?.winAmount > 0 ? 'var(--accent-green)' : 'var(--accent-red)', marginBottom: '10px' }}>
-                  {resultData?.isBot ? 'REJECTED' : resultData?.score} TAPS
+                <h1 style={{ fontSize: '4rem', fontWeight: 900, color: resultData?.winAmount > 0 ? '#34d399' : '#f87171', marginBottom: '5px', lineHeight: 1, textShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+                  {resultData?.isBot ? 'REJECTED' : resultData?.score}
                 </h1>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 800, letterSpacing: '2px', marginBottom: '20px' }}>TOTAL TAPS</div>
 
                 {resultData?.isBot ? (
-                   <div style={{ color: 'var(--accent-red)', textAlign: 'center' }}>Macro software detected. Transaction voided natively.</div>
+                   <div style={{ color: '#f87171', textAlign: 'center', background: 'rgba(239,68,68,0.1)', padding: '15px', borderRadius: '12px' }}>Autoclicker detected. Voided.</div>
                 ) : (
                   <>
-                    <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', marginBottom: '5px' }}>{resultData?.multiplier}x Multiplier</h2>
-                    <h3 style={{ fontSize: '1.5rem', color: resultData?.winAmount > 0 ? 'var(--accent-gold)' : 'var(--text-secondary)', marginBottom: '40px' }}>
-                      {resultData?.winAmount > 0 ? `Won ₹${resultData?.winAmount.toFixed(2)}` : 'You Lost.'}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '8px 20px', borderRadius: '20px', marginBottom: '25px' }}>
+                      <h2 style={{ fontSize: '1.2rem', color: 'white', margin: 0 }}>{resultData?.multiplier}x Multiplier</h2>
+                    </div>
+                    <h3 style={{ fontSize: '2rem', fontWeight: 900, color: resultData?.winAmount > 0 ? '#fbbf24' : 'rgba(255,255,255,0.4)', marginBottom: '35px', textShadow: resultData?.winAmount > 0 ? '0 0 20px rgba(251,191,36,0.5)' : 'none' }}>
+                      {resultData?.winAmount > 0 ? `+ ₹${resultData?.winAmount.toFixed(2)}` : 'You Lost.'}
                     </h3>
                   </>
                 )}
 
-                <div style={{ display: 'flex', gap: '15px' }}>
-                  <button onClick={() => setGameState('setup')} className="btn btn-outline" style={{ padding: '15px 30px' }}>Play Again</button>
-                  <button onClick={() => router.push('/')} className="btn btn-primary" style={{ padding: '15px 30px' }}>Dashboard</button>
+                <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
+                  <button onClick={() => router.push('/')} style={{ flex: 1, padding: '15px', borderRadius: '16px', background: 'rgba(255,255,255,0.05)', color: 'white', border: 'none', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer' }}>Dashboard</button>
+                  <button onClick={() => setGameState('setup')} style={{ flex: 1, padding: '15px', borderRadius: '16px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)' }}>Play Again</button>
                 </div>
               </div>
             )}
@@ -249,6 +284,19 @@ export default function TargetTap() {
         )}
 
       </div>
+      
+      {/* Global CSS for intense animations */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes radar {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse-ring {
+          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+          70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+      `}} />
     </div>
   );
 }

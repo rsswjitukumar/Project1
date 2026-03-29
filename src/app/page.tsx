@@ -74,7 +74,7 @@ export default function Home() {
             <button className="btn btn-primary animate-pulse-glow" style={{ gap: '8px' }}>
               <Gamepad2 size={20} /> Play Now - ₹10 Entry
             </button>
-            <button className="btn btn-outline" style={{ gap: '8px' }}>
+            <button onClick={() => router.push('/refer')} className="btn btn-outline" style={{ gap: '8px' }}>
               <Users size={20} /> Refer & Earn ₹50
             </button>
           </div>

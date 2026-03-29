@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Gift, Users, UserCircle, Home as HomeIcon, Trophy, 
-  Copy, Share2, Sparkles, Coins
+  Copy, Share2, Sparkles, Coins, ArrowLeft
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -55,10 +55,14 @@ export default function ReferPage() {
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', paddingBottom: '90px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
       {/* Header */}
-      <div style={{ padding: '1.5rem 0', display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-accent)' }}>
+      <div style={{ padding: '1.5rem 0', display: 'grid', gridTemplateColumns: '40px 1fr 40px', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ArrowLeft size={24} />
+        </button>
+        <h2 style={{ fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', color: 'var(--primary-accent)', margin: 0 }}>
           <Gift size={24} /> Refer & Earn
         </h2>
+        <div /> {/* Placeholder for grid balance */}
       </div>
 
       {/* Hero Graphic Section */}
@@ -67,9 +71,9 @@ export default function ReferPage() {
           <Gift size={40} color="white" />
           <Sparkles size={20} color="var(--accent-gold)" style={{ position: 'absolute', top: '-10px', right: '-10px' }} />
         </div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '10px' }}>Get <span className="text-gradient">₹10 Cash</span></h1>
+        <h1 style={{ fontSize: '2rem', marginBottom: '10px' }}>Get <span className="text-gradient">₹50 Cash</span></h1>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '300px', lineHeight: '1.5' }}>
-          Invite your friends to SkillSpin Arena. When they register using your link, you instantly get ₹10 in your wallet!
+          Invite your friends to SkillSpin Arena. When they register using your link, you instantly get ₹50 in your wallet, and they get ₹10 bonus!
         </p>
       </div>
 
