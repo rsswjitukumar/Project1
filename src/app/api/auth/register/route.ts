@@ -29,16 +29,12 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create the user
-    // Give Rs. 10 signup bonus if they used a valid referral code
-    const initialBalance = validReferrer ? 10 : 0;
-
     const user = await prisma.user.create({
       data: {
         phone,
         password: hashedPassword,
         username,
-        referredBy: validReferrer ? validReferrer.username : null,
-        walletBalance: initialBalance
+        referredBy: validReferrer ? validReferrer.username : null
       }
     });
 
@@ -61,19 +57,23 @@ export async function POST(request: Request) {
             gateway: 'SYSTEM'
           }
         }),
-        // Add a transaction record for the new user's signup bonus
+        // NEW: Also credit the new user with ₹10 joining bonus if referred
+        prisma.user.update({
+          where: { id: user.id },
+          data: { walletBalance: { increment: 10 } }
+        }),
         prisma.transaction.create({
           data: {
             userId: user.id,
             amount: 10,
-            type: 'SIGNUP_BONUS',
+            type: 'BONUS',
             status: 'SUCCESS',
             gateway: 'SYSTEM'
           }
         })
       ]).catch((err) => {
         // Log the error but don't fail the registration
-        console.error('Failed to credit referrer:', err);
+        console.error('Failed to credit bonuses:', err);
       });
     }
 
