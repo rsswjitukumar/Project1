@@ -20,13 +20,17 @@ export async function GET(request: Request) {
     ]);
 
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    
+    const host = request.headers.get('host') || 'game.fastucl25.pro';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
 
     return NextResponse.json({ 
       success: true, 
       stats: {
         totalInvited: referredCount,
         totalEarnings: user.referralEarnings,
-        referralLink: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login?ref=${username}`
+        referralLink: `${baseUrl}/login?ref=${user.username}`
       }
     });
   } catch (error) {
