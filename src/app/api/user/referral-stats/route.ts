@@ -30,7 +30,8 @@ export async function GET(request: Request) {
       stats: {
         totalInvited: referredCount,
         totalEarnings: user.referralEarnings,
-        referralLink: `${baseUrl}/login?ref=${user.username}`
+        referralCode: user.referralCode || user.username?.substring(0,6).toUpperCase(),
+        referralLink: `${baseUrl}/login?ref=${user.referralCode || user.username}`
       }
     });
   } catch (error) {

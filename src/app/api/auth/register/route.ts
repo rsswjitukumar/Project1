@@ -22,8 +22,19 @@ export async function POST(request: Request) {
     // Verify valid referrer if code provided
     let validReferrer = null;
     if (referralCode && referralCode.trim() !== '') {
-      validReferrer = await prisma.user.findUnique({ where: { username: referralCode.trim() } });
+      // First try unique referralCode field, then fallback to username
+      validReferrer = await prisma.user.findFirst({ 
+        where: { 
+          OR: [
+            { referralCode: referralCode.trim().toUpperCase() },
+            { username: referralCode.trim() }
+          ]
+        } 
+      });
     }
+
+    // Generate a unique 6-8 digit alphanumeric referral code
+    const generatedCode = `${username.substring(0, 4).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
 
     // Hash the password securely
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -34,6 +45,7 @@ export async function POST(request: Request) {
         phone,
         password: hashedPassword,
         username,
+        referralCode: generatedCode,
         referredBy: validReferrer ? validReferrer.username : null
       }
     });
