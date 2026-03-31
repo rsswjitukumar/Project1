@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Wallet, Trophy, Users, UserCircle, 
-  Home as HomeIcon, Gift, LogOut, ChevronRight
+  Home as HomeIcon, Gift, LogOut, ChevronRight, Copy
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -78,6 +78,27 @@ export default function ProfilePage() {
             <div style={{ color: 'white', fontSize: '1.25rem', fontWeight: 'bold' }}>0</div>
             <button className="btn btn-outline" style={{ width: '100%', marginTop: '12px', padding: '8px', fontSize: '0.8rem' }}>History</button>
           </div>
+        </div>
+
+        {/* Unique Referral Code Box */}
+        <div style={{ 
+          width: '100%', marginTop: '1.5rem', padding: '1.25rem', 
+          background: 'rgba(255, 255, 255, 0.03)', borderRadius: '12px',
+          border: '1px dashed var(--primary-accent)', display: 'flex', 
+          flexDirection: 'column', alignItems: 'center', gap: '8px'
+        }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>My Unique Referral Code</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary-accent)', letterSpacing: '2px' }}>{user?.username}</div>
+          <button onClick={() => {
+            navigator.clipboard.writeText(user?.username || '');
+            toast.success('Referral code copied!');
+          }} style={{ 
+            background: 'none', border: 'none', color: 'var(--text-secondary)', 
+            fontSize: '0.8rem', cursor: 'pointer', display: 'flex', 
+            alignItems: 'center', gap: '4px', padding: '4px'
+          }}>
+            <Copy size={14} /> Copy Code Only
+          </button>
         </div>
       </div>
 

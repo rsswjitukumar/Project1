@@ -26,7 +26,8 @@ export async function GET(request: Request) {
       stats: {
         totalInvited: referredCount,
         totalEarnings: user.referralEarnings,
-        referralLink: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login?ref=${username}`
+        referralLink: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://game.fastucl25.pro'}/login?ref=${username}`,
+        referralCode: username
       }
     });
   } catch (error) {

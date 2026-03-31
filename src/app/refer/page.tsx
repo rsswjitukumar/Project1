@@ -77,20 +77,39 @@ export default function ReferPage() {
         </p>
       </div>
 
-      {/* Share Link Card */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255, 255, 255, 0.05)' }}>
-        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Your Unique Invite Link:</div>
+      {/* Unique Referral Code Section */}
+      <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', textAlign: 'center', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>My Unique Referral Code</div>
+        <div style={{ 
+          fontSize: '2rem', fontWeight: '800', color: 'var(--primary-accent)', 
+          background: 'rgba(255, 0, 128, 0.05)', padding: '16px', borderRadius: '12px',
+          border: '2px solid var(--primary-accent)', display: 'inline-block',
+          minWidth: '200px', letterSpacing: '4px', marginBottom: '16px'
+        }}>
+          {stats?.referralCode || '...'}
+        </div>
+        <button onClick={() => {
+          navigator.clipboard.writeText(stats?.referralCode || '');
+          toast.success('Referral code copied!');
+        }} className="btn btn-outline" style={{ display: 'block', margin: '0 auto', fontSize: '0.8rem', padding: '8px 16px' }}>
+          <Copy size={16} /> Copy Code Only
+        </button>
+      </div>
+
+      {/* Invite Link Card */}
+      <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '16px' }}>
+        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Full Invitation Link:</div>
         <div style={{ 
           background: 'rgba(0,0,0,0.4)', border: '1px dashed var(--primary-accent)', 
           padding: '12px', borderRadius: '8px', color: 'white', wordBreak: 'break-all', 
-          fontFamily: 'monospace', fontSize: '0.9rem', position: 'relative' 
+          fontFamily: 'monospace', fontSize: '0.85rem'
         }}>
           {stats?.referralLink}
         </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <button onClick={copyToClipboard} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px' }}>
-            <Copy size={18} /> Copy Link
+            <Copy size={18} /> Copy Full Link
           </button>
           <button onClick={shareViaWhatsApp} className="btn btn-success" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px' }}>
             <Share2 size={18} /> WhatsApp
