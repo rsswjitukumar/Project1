@@ -17,6 +17,7 @@ model User {
   walletBalance Float    @default(0.0)
   totalWinnings Float    @default(0.0)
   referredBy    String?
+  referralCode  String?  @unique
   referralEarnings Float @default(0.0)
   createdAt     DateTime @default(now())
   

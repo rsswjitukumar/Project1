@@ -19,17 +19,35 @@ export async function POST(request: Request) {
       if (existingUser.username === username) return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
     }
 
+    // Unique Alphanumeric Referral Code Generator
+    const generateReferralCode = () => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I, O, 0, 1 for clarity
+      let code = 'SKL-';
+      for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    };
+
+    const newCode = generateReferralCode();
+
     // Verify valid referrer if code provided
     let validReferrer = null;
     if (referralCode && referralCode.trim() !== '') {
-      validReferrer = await prisma.user.findUnique({ where: { username: referralCode.trim() } });
+      validReferrer = await prisma.user.findFirst({ 
+        where: { 
+          OR: [
+            { referralCode: referralCode.trim() },
+            { username: referralCode.trim() } // Fallback for old users
+          ]
+        } 
+      });
     }
 
     // Hash the password securely
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create the user
-    // Give Rs. 50 signup bonus if they used a valid referral code
+    // Create the user with high sign-up bonus if referred
     const initialBalance = validReferrer ? 50 : 0;
 
     const user = await prisma.user.create({
@@ -37,7 +55,8 @@ export async function POST(request: Request) {
         phone,
         password: hashedPassword,
         username,
-        referredBy: validReferrer ? validReferrer.username : null,
+        referralCode: newCode,
+        referredBy: validReferrer ? (validReferrer.referralCode || validReferrer.username) : null,
         walletBalance: initialBalance
       }
     });

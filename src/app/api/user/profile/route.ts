@@ -22,7 +22,8 @@ export async function GET() {
         id: true,
         username: true,
         phone: true,
-        walletBalance: true
+        walletBalance: true,
+        referralCode: true
       }
     });
 

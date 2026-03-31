@@ -88,9 +88,9 @@ export default function ProfilePage() {
           flexDirection: 'column', alignItems: 'center', gap: '8px'
         }}>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>My Unique Referral Code</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary-accent)', letterSpacing: '2px' }}>{user?.username}</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary-accent)', letterSpacing: '2px' }}>{user?.referralCode || user?.username}</div>
           <button onClick={() => {
-            navigator.clipboard.writeText(user?.username || '');
+            navigator.clipboard.writeText(user?.referralCode || user?.username || '');
             toast.success('Referral code copied!');
           }} style={{ 
             background: 'none', border: 'none', color: 'var(--text-secondary)', 
