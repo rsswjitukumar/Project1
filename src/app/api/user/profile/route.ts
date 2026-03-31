@@ -49,7 +49,7 @@ export async function GET() {
       needsUpdate = true;
     }
 
-    let finalUser = { ...user, referralCode: currentCode };
+    let finalUser: any = { ...user, referralCode: currentCode };
 
     if (needsUpdate) {
       const updatedUser = await prisma.user.update({
