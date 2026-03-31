@@ -21,13 +21,29 @@ export async function GET(request: Request) {
 
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
+    // Auto-generate referralCode for existing users if missing
+    let currentCode = user.referralCode;
+    if (!currentCode) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'SKL-';
+      for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { referralCode: code }
+      });
+      currentCode = code;
+    }
+
     return NextResponse.json({ 
       success: true, 
       stats: {
         totalInvited: referredCount,
         totalEarnings: user.referralEarnings,
-        referralLink: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://game.fastucl25.pro'}/login?ref=${user.referralCode || username}`,
-        referralCode: user.referralCode || username
+        referralLink: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://game.fastucl25.pro'}/login?ref=${currentCode}`,
+        referralCode: currentCode
       }
     });
   } catch (error) {

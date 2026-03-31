@@ -31,7 +31,30 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, user });
+    // Auto-generate referralCode for existing users if missing
+    let finalUser = { ...user };
+    if (!user.referralCode) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'SKL-';
+      for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: { referralCode: code },
+        select: {
+          id: true,
+          username: true,
+          phone: true,
+          walletBalance: true,
+          referralCode: true
+        }
+      });
+      finalUser = updatedUser;
+    }
+
+    return NextResponse.json({ success: true, user: finalUser });
   } catch (error) {
     console.error('PROFILE_ERROR:', error);
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
