@@ -13,6 +13,8 @@ export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [passwords, setPasswords] = useState({ newPassword: '', confirmPassword: '' });
+  const [isChanging, setIsChanging] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,9 +45,46 @@ export default function ProfilePage() {
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwords.newPassword || !passwords.confirmPassword) {
+      return toast.error('Please fill all fields');
+    }
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      return toast.error('Passwords do not match');
+    }
+    if (passwords.newPassword.length < 6) {
+      return toast.error('Password must be at least 6 characters');
+    }
+
+    setIsChanging(true);
+    try {
+      const res = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwords.newPassword })
+      });
+
+      if (res.ok) {
+        toast.success('Password updated successfully');
+        setPasswords({ newPassword: '', confirmPassword: '' });
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to update password');
+      }
+    } catch (e) {
+      toast.error('Error updating password');
+    } finally {
+      setIsChanging(false);
+    }
+  };
+
   if (isLoading) {
     return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-accent)' }}>Loading Profile...</div>;
   }
+
+  // Sanitize referral code: Remove dashes for seamless display
+  const displayCode = (user?.referralCode || user?.username || '').replace(/-/g, '');
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', paddingBottom: '80px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -88,9 +127,9 @@ export default function ProfilePage() {
           flexDirection: 'column', alignItems: 'center', gap: '8px'
         }}>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>My Unique Referral Code</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary-accent)', letterSpacing: '2px' }}>{user?.referralCode || user?.username}</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary-accent)', letterSpacing: '2px' }}>{displayCode}</div>
           <button onClick={() => {
-            navigator.clipboard.writeText(user?.referralCode || user?.username || '');
+            navigator.clipboard.writeText(displayCode);
             toast.success('Referral code copied!');
           }} style={{ 
             background: 'none', border: 'none', color: 'var(--text-secondary)', 
@@ -117,6 +156,30 @@ export default function ProfilePage() {
              <span>Transaction History</span>
            </div>
            <ChevronRight size={20} color="var(--text-secondary)" />
+         </div>
+
+         {/* Change Password Section */}
+         <div className="glass-panel" style={{ padding: '20px', marginTop: '8px' }}>
+           <h4 style={{ fontSize: '1rem', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>Change Password</h4>
+           <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+             <input 
+               type="password" 
+               placeholder="New Password" 
+               value={passwords.newPassword}
+               onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }} 
+             />
+             <input 
+               type="password" 
+               placeholder="Confirm Password" 
+               value={passwords.confirmPassword}
+               onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
+               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', color: 'white', outline: 'none' }} 
+             />
+             <button type="submit" disabled={isChanging} className="btn btn-primary" style={{ marginTop: '4px', padding: '12px', fontSize: '0.9rem' }}>
+               {isChanging ? 'Updating...' : 'Update Password'}
+             </button>
+           </form>
          </div>
       </div>
 
