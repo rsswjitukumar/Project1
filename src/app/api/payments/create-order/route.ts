@@ -52,9 +52,67 @@ export async function POST(request: Request) {
           currency: "INR"
         };
       }
+    } else if (gateway === 'PAYTM') {
+      // REAL PAYTM INTEGRATION LOGIC
+      const PaytmChecksum = require('paytmchecksum');
+      const mid = process.env.PAYTM_MID || 'YOUR_MID_HERE';
+      const mkey = process.env.PAYTM_MERCHANT_KEY || 'YOUR_KEY_HERE';
+      const orderId = `PAYTM_${Date.now()}_${userId.substring(0, 5)}`;
+      
+      const paytmParams: any = {};
+      paytmParams.body = {
+        "requestType": "Payment",
+        "mid": mid,
+        "websiteName": process.env.PAYTM_WEBSITE || "WEBSTAGING",
+        "orderId": orderId,
+        "callbackUrl": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://game.fastucl25.pro'}/api/payments/verify`,
+        "txnAmount": {
+          "value": parseFloat(amount).toFixed(2),
+          "currency": "INR",
+        },
+        "userInfo": {
+          "custId": userId,
+          "mobile": user.phone || ""
+        },
+      };
+
+      const checksum = await PaytmChecksum.generateSignature(JSON.stringify(paytmParams.body), mkey);
+      paytmParams.head = { "signature": checksum };
+
+      // In production/sandbox use the correct Paytm URL
+      const isProd = process.env.NODE_ENV === 'production';
+      const paytmUrl = `https://securegw${isProd ? '' : '-stage'}.paytm.in/theia/api/v1/initiateTransaction?mid=${mid}&orderId=${orderId}`;
+
+      try {
+        const response = await fetch(paytmUrl, {
+          method: 'POST',
+          body: JSON.stringify(paytmParams),
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const result = await response.json();
+        
+        if (result.body && result.body.txnToken) {
+          orderData = {
+            id: orderId,
+            txnToken: result.body.txnToken,
+            amount: parseFloat(amount),
+            mid: mid
+          };
+        } else {
+          throw new Error(result.body?.resultInfo?.resultMsg || 'Paytm token generation failed');
+        }
+      } catch (error: any) {
+        console.error("Paytm API Error:", error);
+        // Fallback for testing if no keys
+        orderData = {
+          id: orderId, // Still use the generated OrderId
+          amount: parseFloat(amount),
+          mock: true 
+        };
+      }
     } else {
       orderData = {
-        id: `paytm_order_${Math.random().toString(36).substring(2, 9)}`,
+        id: `gen_order_${Math.random().toString(36).substring(2, 9)}`,
         amount: parseFloat(amount),
       };
     }

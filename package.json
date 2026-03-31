@@ -6,14 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate && prisma db push --accept-data-loss"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
+    "@vercel/speed-insights": "^1.1.0",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.1",
     "lucide-react": "^0.577.0",
-    "next": "15.1.7",
+    "next": "15.1.11",
+    "paytmchecksum": "^1.5.1",
     "razorpay": "^2.9.6",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -25,7 +28,7 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.1.7",
+    "eslint-config-next": "15.1.11",
     "prisma": "^6.2.1",
     "typescript": "5.9.3"
   }

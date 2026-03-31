@@ -20,13 +20,36 @@ export async function GET(request: Request) {
     ]);
 
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    
+    // Auto-generate and SAVE referralCode if it's missing for existing users
+    let currentUserCode = user.referralCode;
+    if (!currentUserCode) {
+      const namePart = (user.username || 'USER').replace(/\s/g, '').substring(0, 4).toUpperCase();
+      const randPart = Math.floor(1000 + Math.random() * 9000);
+      currentUserCode = `${namePart}${randPart}`;
+      
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { referralCode: currentUserCode }
+        });
+      } catch (e) {
+        // If code exists, use username as fallback for this request only
+        currentUserCode = user.username || user.id.substring(0, 8);
+      }
+    }
+
+    const host = request.headers.get('host') || 'game.fastucl25.pro';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
 
     return NextResponse.json({ 
       success: true, 
       stats: {
         totalInvited: referredCount,
         totalEarnings: user.referralEarnings,
-        referralLink: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login?ref=${username}`
+        referralCode: currentUserCode,
+        referralLink: `${baseUrl}/login?ref=${currentUserCode}`
       }
     });
   } catch (error) {

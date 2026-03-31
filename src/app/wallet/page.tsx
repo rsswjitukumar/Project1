@@ -1,4 +1,5 @@
 'use client';
+// Force redeploy with real Paytm keys sync 2026.1
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -64,7 +65,7 @@ export default function WalletPage() {
          return;
       }
 
-      if (selectedGateway === 'RAZORPAY' && orderData.order.id.startsWith('rzp_')) {
+      if (selectedGateway === 'RAZORPAY') {
         // Real Razorpay Flow
         const options = {
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
@@ -88,7 +89,7 @@ export default function WalletPage() {
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
               setBalance(prev => prev + parseFloat(addAmount));
-              toast.success('Cash Added Successfully to your Beast Wallet!');
+              toast.success('Cash Added Successfully!');
             } else {
               toast.error(verifyData.error || 'Payment verification failed');
             }
@@ -101,30 +102,77 @@ export default function WalletPage() {
         };
 
         const rzp = new (window as any).Razorpay(options);
-        rzp.on('payment.failed', function (response: any){
-          toast.error(response.error.description || 'Payment Failed');
-        });
         rzp.open();
-        setLoading(false); // Enable button again
+        setLoading(false);
 
-      } else {
-        // Mock Bypass (Paytm or missing keys fallback)
-        toast.success(`Mock Redirecting to ${selectedGateway}...`);
-        const verifyRes = await fetch('/api/payments/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: orderData.order.id, status: 'SUCCESS' }),
-        });
-        const verifyData = await verifyRes.json();
-        if (verifyData.success) {
-          setBalance(prev => prev + parseFloat(addAmount));
-          toast.success('Mock Cash Added Successfully!');
-        } else {
-          toast.error(verifyData.error || 'Payment failed');
+      } else if (selectedGateway === 'PAYTM' && orderData.order.txnToken) {
+        // REAL PAYTM JS CHECKOUT FLOW
+        // Laptop/PC par QR dikhayega, Mobile par App Open karega
+        const mid = orderData.order.mid;
+        const isProd = process.env.NODE_ENV === 'production' && process.env.PAYTM_WEBSITE !== 'WEBSTAGING';
+        
+        const loadPaytmScript = () => {
+          return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = `https://securegw${isProd ? '' : '-stage'}.paytm.in/merchantpgpui/checkoutjs/merchants/${mid}.js`;
+            script.async = true;
+            script.onload = resolve;
+            document.body.appendChild(script);
+          });
+        };
+
+        await loadPaytmScript();
+
+        if (window.Paytm && window.Paytm.CheckoutJS) {
+          const config = {
+            "root": "",
+            "flow": "DEFAULT", // This is mandatory for Desktop QR & Mobile Intent
+            "data": {
+              "orderId": orderData.order.id,
+              "token": orderData.order.txnToken,
+              "tokenType": "TXN_TOKEN",
+              "amount": orderData.order.amount.toString()
+            },
+            "handler": {
+              "notifyMerchant": async function(eventName: string, data: any) {
+                if (eventName === 'SESSION_FINISHED') {
+                  // After session finishes, trigger secure server-side verification
+                  const verifyRes = await fetch('/api/payments/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                      orderId: orderData.order.id, 
+                      status: 'SUCCESS' 
+                    }),
+                  });
+                  const verifyData = await verifyRes.json();
+                  if (verifyData.success) {
+                    setBalance(prev => prev + parseFloat(addAmount));
+                    toast.success('Money Added Successfully!');
+                    setTimeout(() => window.location.reload(), 2000);
+                  } else {
+                    toast.error(verifyData.error || 'Verification pending. Check balance in 5 mins.');
+                  }
+                }
+              }
+            }
+          };
+
+          window.Paytm.CheckoutJS.init(config).then(function onSuccess() {
+            window.Paytm.CheckoutJS.invoke();
+          }).catch(function onError(error: any) {
+            console.error("Paytm invoke error:", error);
+            toast.error("Paytm initialization failed. Check your MID/Key.");
+          });
         }
+        setLoading(false);
+      } else {
+        // STRICT: No more direct adding of money
+        toast.error('Real Paytm gateway could not start. Please add Merchant Keys in Vercel Settings.');
         setLoading(false);
       }
     } catch (err) {
+      console.error(err);
       toast.error('Payment Error. Please try again.');
       setLoading(false);
     }

@@ -78,14 +78,41 @@ export default function ReferPage() {
       </div>
 
       {/* Share Link Card */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255, 255, 255, 0.05)' }}>
-        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Your Unique Invite Link:</div>
-        <div style={{ 
-          background: 'rgba(0,0,0,0.4)', border: '1px dashed var(--primary-accent)', 
-          padding: '12px', borderRadius: '8px', color: 'white', wordBreak: 'break-all', 
-          fontFamily: 'monospace', fontSize: '0.9rem', position: 'relative' 
-        }}>
-          {stats?.referralLink}
+      <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', background: 'rgba(255, 255, 255, 0.05)' }}>
+        
+        {/* Referral Code Section */}
+        <div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>Your Unique Referral Code:</div>
+          <div style={{ 
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: 'linear-gradient(90deg, rgba(255,0,128,0.1), rgba(121,40,202,0.1))', 
+            border: '1px solid rgba(255,0,128,0.3)', padding: '12px 16px', borderRadius: '12px'
+          }}>
+            <span style={{ fontSize: '1.4rem', fontWeight: 'bold', letterSpacing: '2px', color: 'var(--primary-accent)' }}>
+              {stats?.referralCode || '-------'}
+            </span>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(stats?.referralCode || '');
+                toast.success('Referral code copied!');
+              }}
+              style={{ background: 'var(--primary-accent)', border: 'none', borderRadius: '8px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            >
+              <Copy size={18} color="white" />
+            </button>
+          </div>
+        </div>
+
+        {/* Referral Link Section */}
+        <div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>Full Invite Link:</div>
+          <div style={{ 
+            background: 'rgba(0,0,0,0.4)', border: '1px dashed rgba(255,255,255,0.2)', 
+            padding: '12px', borderRadius: '8px', color: 'rgba(255,255,255,0.7)', wordBreak: 'break-all', 
+            fontFamily: 'monospace', fontSize: '0.8rem'
+          }}>
+            {stats?.referralLink || 'Loading...'}
+          </div>
         </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

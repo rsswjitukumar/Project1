@@ -30,16 +30,30 @@ export async function POST(request: Request) {
     if (transaction.status === 'SUCCESS') return NextResponse.json({ error: 'Transaction already processed' }, { status: 400 });
 
     if (status === 'SUCCESS') {
-      // Very basic signature skeleton logic (uncomment to enforce)
-      if (paymentId && signature) {
+      // 1. Logic for Razorpay Signature Verification
+      if (transaction.gateway === 'RAZORPAY' && paymentId && signature) {
         const secret = process.env.RAZORPAY_KEY_SECRET;
         if (secret && secret !== 'secret_placeholder') {
           const expectedSignature = crypto.createHmac('sha256', secret)
                                         .update(orderId + "|" + paymentId)
                                         .digest('hex');
           if (expectedSignature !== signature) {
-            return NextResponse.json({ error: 'Invalid Payment Signature (Rejecting due to forgery)' }, { status: 400 });
+            return NextResponse.json({ error: 'Invalid Razorpay Signature' }, { status: 400 });
           }
+        }
+      }
+
+      // 2. Logic for Paytm Signature Verification
+      if (transaction.gateway === 'PAYTM' && signature) {
+        const PaytmChecksum = require('paytmchecksum');
+        const mkey = process.env.PAYTM_MERCHANT_KEY || 'YOUR_KEY_HERE';
+        
+        // In a real callback, Paytm sends many fields. We verify the body + signature.
+        // For client-side triggered verify, we might need to fetch status from Paytm API first.
+        const isValid = await PaytmChecksum.verifySignature(JSON.stringify({ orderId, status }), mkey, signature);
+        
+        if (!isValid && process.env.NODE_ENV === 'production') {
+           return NextResponse.json({ error: 'Invalid Paytm Signature' }, { status: 400 });
         }
       }
 

@@ -38,6 +38,7 @@ export default function TargetTap() {
     setScore(0);
     setTimeLeft(15.0);
     setGameState('playing');
+    moveTarget();
     
     startTimeRef.current = Date.now();
     
@@ -154,7 +155,7 @@ export default function TargetTap() {
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, rgba(239, 68, 68, 0.15) 0%, transparent 80%)', padding: '20px', zIndex: 20 }}>
             <div style={{ position: 'relative', marginBottom: '30px' }}>
               <div style={{ position: 'absolute', inset: '-20px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.2)', animation: 'pulse-ring 2s infinite' }} />
-              <Crosshair size={90} color="#f87171" style={{ filter: 'drop-shadow(0 0 25px rgba(2ef,68,68,0.8))' }} />
+              <Crosshair size={90} color="#f87171" style={{ filter: 'drop-shadow(0 0 25px rgba(239,68,68,0.8))' }} />
             </div>
             
             <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '10px', textAlign: 'center', textShadow: '0 4px 20px rgba(0,0,0,0.5)', lineHeight: 1.1 }}>
@@ -183,7 +184,7 @@ export default function TargetTap() {
                ))}
             </div>
 
-            <button onClick={startGame} style={{ padding: '20px 60px', borderRadius: '30px', fontSize: '1.5rem', fontWeight: 900, background: 'linear-gradient(135deg, #f87171, #dc2626)', color: 'white', border: 'none', cursor: 'pointer', boxShadow: '0 15px 35px rgba(220, 38, 38, 0.5), inset 0 2px 10px rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '2px', transition: 'transform 0.2s' }} onMouseDown={e => e.currentTarget.style.transform = 'scale(0.95)'} onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}>
+            <button onClick={startGame} style={{ padding: '20px 60px', borderRadius: '30px', fontSize: '1.5rem', fontWeight: 900, background: 'linear-gradient(135deg, #f87171, #dc2626)', color: 'white', border: 'none', cursor: 'pointer', boxShadow: '0 15px 35px rgba(220, 38, 38, 0.5), inset 0 2px 10px rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '2px', transition: 'transform 0.2s' }}>
               Play Now
             </button>
           </div>
@@ -250,7 +251,7 @@ export default function TargetTap() {
                 <h2 style={{ marginTop: '25px', color: 'rgba(255,255,255,0.6)', fontWeight: 600, letterSpacing: '1px' }}>Verifying Taps...</h2>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'pulse-ring 0.5s ease-out forwards', background: 'rgba(255,255,255,0.03)', padding: '40px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'fadeIn 0.5s ease-out', background: 'rgba(255,255,255,0.03)', padding: '40px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
                 <div style={{ marginBottom: '20px', position: 'relative' }}>
                   <Crosshair size={90} color={resultData?.winAmount > 0 ? "#10b981" : "#ef4444"} style={{ filter: `drop-shadow(0 0 20px ${resultData?.winAmount > 0 ? '#10b981' : '#ef4444'})` }} />
                   {resultData?.winAmount > 0 && <Zap size={35} color="#fbbf24" style={{ position: 'absolute', top: '-5px', right: '-15px', animation: 'pulse-ring 2s infinite' }} />}
@@ -284,17 +285,15 @@ export default function TargetTap() {
         )}
 
       </div>
-      
-      {/* Global CSS for intense animations */}
+
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes radar {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
         @keyframes pulse-ring {
-          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-          70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
-          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+          0% { transform: scale(0.9); opacity: 1; }
+          100% { transform: scale(1.4); opacity: 0; }
         }
       `}} />
     </div>
