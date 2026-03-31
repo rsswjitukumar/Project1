@@ -105,7 +105,7 @@ export default function LudoEngine() {
           <h2 style={{ fontSize: '1.2rem', margin: 0, fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', background: 'linear-gradient(90deg, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Skill Ludo
           </h2>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Target: 50 Pts</div>
+          <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Target: 50 Pts</div>
         </div>
         <div style={{ background: 'linear-gradient(135deg, #fbbf24, #d97706)', padding: '6px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.9rem', boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)' }}>
           ₹{match.entryFee * 1.8}
@@ -167,7 +167,6 @@ export default function LudoEngine() {
           <button 
             onClick={() => handleAction('ROLL')}
             disabled={!isMyTurn || gameState.diceValue !== null}
-            className={`btn ${isMyTurn && gameState.diceValue === null ? 'animate-pulse-glow' : ''}`}
             style={{ 
               width: '130px', height: '130px', borderRadius: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
               background: isMyTurn && gameState.diceValue === null ? 'linear-gradient(135deg, #6366f1, #a855f7, #ec4899)' : 'radial-gradient(circle, rgba(255,255,255,0.1), rgba(0,0,0,0.4))',
