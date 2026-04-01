@@ -143,7 +143,7 @@ export default function Home() {
           <div className="glass-panel">
             <div className={styles.gameBanner}>
               <img 
-                src="https://images.unsplash.com/photo-1596838132731-dd960a519656?q=80&w=800&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1518063311540-06ad95ffda4a?q=80&w=800&auto=format&fit=crop" 
                 alt="Spin Wheel"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
@@ -184,7 +184,7 @@ export default function Home() {
           <div className="glass-panel">
             <div className={styles.gameBanner}>
               <img 
-                src="https://images.unsplash.com/photo-1553481199-a91742250581?q=80&w=800&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1542385151-efd9000785a0?q=80&w=800&auto=format&fit=crop" 
                 alt="Target Tap"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
