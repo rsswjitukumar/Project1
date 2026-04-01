@@ -102,7 +102,7 @@ export default function Home() {
           <div className="glass-panel">
             <div className={styles.gameBanner}>
               <img 
-                src="https://images.unsplash.com/photo-1590121338659-68b846e7f973?q=80&w=800&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1606167668584-78701c57f13d?q=80&w=800&auto=format&fit=crop" 
                 alt="Luck Ludo"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
@@ -184,7 +184,7 @@ export default function Home() {
           <div className="glass-panel">
             <div className={styles.gameBanner}>
               <img 
-                src="https://images.unsplash.com/photo-1514316703755-d4205de5d702?q=80&w=800&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1553481199-a91742250581?q=80&w=800&auto=format&fit=crop" 
                 alt="Target Tap"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
