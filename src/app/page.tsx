@@ -100,11 +100,12 @@ export default function Home() {
         <div className="grid-cards">
           {/* Game Card 1 */}
           <div className="glass-panel">
-            <div className={styles.gameBanner} style={{
-              backgroundImage: 'url("https://images.unsplash.com/photo-1590121338659-68b846e7f973?q=80&w=800&auto=format&fit=crop")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}>
+            <div className={styles.gameBanner}>
+              <img 
+                src="https://images.unsplash.com/photo-1590121338659-68b846e7f973?q=80&w=800&auto=format&fit=crop" 
+                alt="Luck Ludo"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
               <span className={styles.gameBadge}>Hot</span>
             </div>
             <div className={styles.gameInfo}>
@@ -124,21 +125,28 @@ export default function Home() {
               
               <button 
                 onClick={() => router.push('/match-room')}
-                className="btn btn-primary" 
-                style={{width: '100%', marginTop: '16px', gap: '8px'}}
+                className="btn btn-primary animate-pulse-glow" 
+                style={{
+                  width: '100%', 
+                  marginTop: '16px', 
+                  gap: '8px',
+                  background: 'linear-gradient(90deg, #7c3aed, #db2777)',
+                  boxShadow: '0 0 20px rgba(124, 58, 237, 0.3)'
+                }}
               >
-                <Play size={18} fill="currentColor" /> Play Ludo
+                <Play size={18} fill="currentColor" /> PLAY LUDO
               </button>
             </div>
           </div>
 
           {/* Game Card 2 */}
           <div className="glass-panel">
-            <div className={styles.gameBanner} style={{
-              backgroundImage: 'url("https://images.unsplash.com/photo-1596838132731-dd960a519656?q=80&w=800&auto=format&fit=crop")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}>
+            <div className={styles.gameBanner}>
+              <img 
+                src="https://images.unsplash.com/photo-1596838132731-dd960a519656?q=80&w=800&auto=format&fit=crop" 
+                alt="Spin Wheel"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
               <span className={styles.gameBadge}>New</span>
             </div>
             <div className={styles.gameInfo}>
@@ -158,21 +166,28 @@ export default function Home() {
               
               <button 
                 onClick={() => router.push('/game/spin')}
-                className="btn btn-primary" 
-                style={{width: '100%', marginTop: '16px', gap: '8px'}}
+                className="btn btn-primary animate-pulse-glow" 
+                style={{
+                  width: '100%', 
+                  marginTop: '16px', 
+                  gap: '8px',
+                  background: 'linear-gradient(90deg, #7c3aed, #db2777)',
+                  boxShadow: '0 0 20px rgba(124, 58, 237, 0.3)'
+                }}
               >
-                <Loader size={18} /> Spin Now
+                <Loader size={18} /> SPIN NOW
               </button>
             </div>
           </div>
 
           {/* Game Card 3 */}
           <div className="glass-panel">
-            <div className={styles.gameBanner} style={{
-              backgroundImage: 'url("https://images.unsplash.com/photo-1514316703755-d4205de5d702?q=80&w=800&auto=format&fit=crop")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}>
+            <div className={styles.gameBanner}>
+              <img 
+                src="https://images.unsplash.com/photo-1514316703755-d4205de5d702?q=80&w=800&auto=format&fit=crop" 
+                alt="Target Tap"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </div>
             <div className={styles.gameInfo}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
