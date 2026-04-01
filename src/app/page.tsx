@@ -143,9 +143,13 @@ export default function Home() {
           <div className="glass-panel">
             <div className={styles.gameBanner}>
               <img 
-                src="https://images.unsplash.com/photo-1518063311540-06ad95ffda4a?q=80&w=800&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1596838132731-dd960a519656?q=80&w=800&auto=format&fit=crop" 
                 alt="Spin Wheel"
+                className={styles.bannerImage}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1518063311540-06ad95ffda4a?q=80&w=800&auto=format&fit=crop';
+                }}
               />
               <span className={styles.gameBadge}>New</span>
             </div>
@@ -186,7 +190,11 @@ export default function Home() {
               <img 
                 src="https://images.unsplash.com/photo-1542385151-efd9000785a0?q=80&w=800&auto=format&fit=crop" 
                 alt="Target Tap"
+                className={styles.bannerImage}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1511406361295-0a5ff814c0e9?q=80&w=800&auto=format&fit=crop';
+                }}
               />
             </div>
             <div className={styles.gameInfo}>
