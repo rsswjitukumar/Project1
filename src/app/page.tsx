@@ -188,8 +188,8 @@ export default function Home() {
           <div className="glass-panel">
             <div className={styles.gameBanner}>
               <img 
-                src="https://images.unsplash.com/photo-1542385151-efd9000785a0?q=80&w=800&auto=format&fit=crop" 
-                alt="Target Tap"
+                src="https://images.unsplash.com/photo-1518063311540-06ad95ffda4a?q=80&w=800&auto=format&fit=crop" 
+                alt="Tap The Target"
                 className={styles.bannerImage}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => {
@@ -199,7 +199,7 @@ export default function Home() {
             </div>
             <div className={styles.gameInfo}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Target size={20} color="var(--accent-green)" /> Target Tap
+                <Target size={20} color="var(--accent-green)" /> Tap The Target
               </h4>
               <p>30 seconds reaction battle.</p>
               
