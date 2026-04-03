@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
-import { ChevronLeft, Wallet, ArrowDownToLine, ArrowUpFromLine, ShieldCheck, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, Wallet, ArrowDownToLine, ArrowUpFromLine, ShieldCheck, ChevronRight, CheckCircle2, History as HistoryIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function WalletPage() {
@@ -139,6 +139,9 @@ export default function WalletPage() {
           <ChevronLeft size={24} />
         </button>
         <h2 className={styles.headerTitle}>My Beast Wallet</h2>
+        <button onClick={() => router.push('/transactions')} className={styles.backBtn} style={{ marginLeft: 'auto' }}>
+          <HistoryIcon size={24} />
+        </button>
       </div>
 
       <div className={`glass-panel ${styles.balanceCard}`}>
