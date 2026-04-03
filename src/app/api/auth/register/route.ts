@@ -47,8 +47,8 @@ export async function POST(request: Request) {
     // Hash the password securely
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create the user with high sign-up bonus if referred
-    const initialBalance = validReferrer ? 50 : 0;
+    // Create the user with sign-up bonus if referred
+    const initialBalance = validReferrer ? 10 : 0;
 
     const user = await prisma.user.create({
       data: {
@@ -67,14 +67,14 @@ export async function POST(request: Request) {
         prisma.user.update({
           where: { id: validReferrer.id },
           data: {
-            walletBalance: { increment: 10 },
-            referralEarnings: { increment: 10 }
+            walletBalance: { increment: 50 },
+            referralEarnings: { increment: 50 }
           }
         }),
         prisma.transaction.create({
           data: {
             userId: validReferrer.id,
-            amount: 10,
+            amount: 50,
             type: 'REFERRAL_BONUS',
             status: 'SUCCESS',
             gateway: 'SYSTEM'
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
         prisma.transaction.create({
           data: {
             userId: user.id,
-            amount: 50,
+            amount: 10,
             type: 'SIGNUP_BONUS',
             status: 'SUCCESS',
             gateway: 'SYSTEM'

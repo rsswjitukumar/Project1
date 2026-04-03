@@ -2,108 +2,115 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Receipt, ArrowUpRight, ArrowDownLeft, Clock, History } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { ChevronLeft, ReceiptText, ArrowUpToLine, ArrowDownToLine, Trophy, Gift, Clock, Search } from 'lucide-react';
+import styles from '../wallet/page.module.css';
 
 export default function TransactionsPage() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('ALL');
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         const res = await fetch('/api/user/transactions');
-        if (res.ok) {
-          const data = await res.json();
+        const data = await res.json();
+        if (data.success) {
           setTransactions(data.transactions);
-        } else {
-          router.push('/login');
         }
       } catch (e) {
-        toast.error('Failed to load transaction history');
+        console.error(e);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
     fetchTransactions();
-  }, [router]);
+  }, []);
 
-  const getTransactionStyles = (type: string) => {
-    if (type.includes('DEPOSIT') || type.includes('WIN') || type.includes('BONUS')) {
-      return { color: 'var(--accent-green)', icon: <ArrowDownLeft size={20} color="var(--accent-green)" />, sign: '+' };
+  const filteredTransactions = transactions.filter(tx => {
+    if (filter === 'ALL') return true;
+    return tx.type === filter;
+  });
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'DEPOSIT': return <ArrowDownToLine size={18} color="#10b981" />;
+      case 'WITHDRAWAL': return <ArrowUpToLine size={18} color="#ff0080" />;
+      case 'GAME_WIN': return <Trophy size={18} color="var(--accent-gold)" />;
+      case 'GAME_LOSS': return <Clock size={18} color="#ef4444" />;
+      case 'REFERRAL_BONUS': return <Gift size={18} color="#a855f7" />;
+      default: return <ReceiptText size={18} color="var(--text-secondary)" />;
     }
-    if (type.includes('WITHDRAWAL') || type.includes('LOSS') || type.includes('MATCH_FEE')) {
-      return { color: 'var(--accent-red)', icon: <ArrowUpRight size={20} color="var(--accent-red)" />, sign: '-' };
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'SUCCESS': return '#10b981';
+      case 'PENDING': return '#fbbf24';
+      case 'FAILED': return '#ef4444';
+      default: return 'var(--text-secondary)';
     }
-    return { color: 'var(--text-secondary)', icon: <Receipt size={20} color="var(--text-secondary)" />, sign: '' };
   };
-
-  const formatType = (type: string) => {
-    return type.replace(/_/g, ' ');
-  };
-
-  const formatDate = (dateString: string) => {
-    const d = new Date(dateString);
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
-
-  if (isLoading) {
-    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-accent)' }}>Loading History...</div>;
-  }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', background: 'var(--bg-dark)', minHeight: '100vh', color: 'white', display: 'flex', flexDirection: 'column' }}>
-      
-      {/* Header */}
-      <div style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '1px solid rgba(255,255,255,0.05)', position: 'sticky', top: 0, background: 'rgba(15, 16, 22, 0.95)', backdropFilter: 'blur(10px)', zIndex: 10 }}>
-        <button onClick={() => router.back()} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', display: 'flex' }}>
-          <ChevronLeft size={28} />
+    <div className={styles.walletContainer}>
+      <div className={styles.header}>
+        <button onClick={() => router.back()} className={styles.backBtn}>
+          <ChevronLeft size={24} />
         </button>
-        <h1 style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <History size={20} color="var(--primary-accent)" /> Transaction History
-        </h1>
+        <h2 className={styles.headerTitle}>Transaction History</h2>
       </div>
 
-      <div style={{ padding: '20px', flex: 1 }}>
-        {transactions.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginTop: '100px', opacity: 0.5 }}>
-            <Receipt size={60} style={{ marginBottom: '15px' }} />
-            <h2 style={{ fontSize: '1.2rem' }}>No Transactions Yet</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Your recent activity will appear here.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {transactions.map((tx) => {
-              const { color, icon, sign } = getTransactionStyles(tx.type);
-              return (
-                <div key={tx.id} className="glass-panel" style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {icon}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{formatType(tx.type)}</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Clock size={12} /> {formatDate(tx.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                    <span style={{ fontWeight: '900', fontSize: '1.1rem', color }}>
-                      {sign}₹{tx.amount.toFixed(2)}
-                    </span>
-                    <span style={{ fontSize: '0.7rem', color: tx.status === 'SUCCESS' ? 'var(--accent-green)' : (tx.status === 'FAILED' ? 'var(--accent-red)' : 'var(--accent-gold)'), background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: '4px' }}>
-                      {tx.status}
-                    </span>
-                  </div>
+      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '0 5px 15px', marginBottom: '10px' }}>
+         {['ALL', 'DEPOSIT', 'WITHDRAWAL', 'GAME_WIN', 'REFERRAL_BONUS'].map(f => (
+           <button 
+             key={f}
+             onClick={() => setFilter(f)}
+             style={{ 
+                padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.75rem',
+                whiteSpace: 'nowrap',
+                background: filter === f ? 'var(--accent-green)' : 'rgba(255,255,255,0.05)',
+                color: filter === f ? 'black' : 'white', fontWeight: 'bold'
+             }}
+           >
+             {f.replace('_', ' ')}
+           </button>
+         ))}
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-secondary)' }}>Loading transactions...</div>
+      ) : filteredTransactions.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+           <Search size={48} color="rgba(255,255,255,0.1)" />
+           <p style={{ color: 'var(--text-secondary)' }}>No transactions found for this filter.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {filteredTransactions.map((tx) => (
+            <div key={tx.id} className="glass-panel" style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '12px' }}>
+                  {getIcon(tx.type)}
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
+                <div>
+                   <div style={{ fontSize: '0.95rem', fontWeight: 'bold' }}>{tx.type.replace('_', ' ')}</div>
+                   <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{new Date(tx.createdAt).toLocaleString()}</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                 <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: tx.type === 'GAME_WIN' || tx.type === 'DEPOSIT' || tx.type === 'REFERRAL_BONUS' ? '#10b981' : (tx.type === 'GAME_LOSS' || tx.type === 'WITHDRAWAL' ? '#ef4444' : 'white') }}>
+                   {tx.type === 'GAME_WIN' || tx.type === 'DEPOSIT' || tx.type === 'REFERRAL_BONUS' ? '+' : '-'}₹{tx.amount.toFixed(2)}
+                 </div>
+                 <div style={{ fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', color: getStatusColor(tx.status) }}>
+                   {tx.status}
+                 </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

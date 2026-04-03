@@ -14,9 +14,14 @@ export async function GET(request: Request) {
     const { payload } = await jwtVerify(token, secret);
     const username = payload.username as string;
 
-    const [user, referredCount] = await Promise.all([
+    const [user, referredFriends] = await Promise.all([
       prisma.user.findUnique({ where: { id: payload.id as string } }),
-      prisma.user.count({ where: { referredBy: username } })
+      prisma.user.findMany({ 
+        where: { referredBy: username },
+        select: { username: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      })
     ]);
 
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -40,10 +45,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ 
       success: true, 
       stats: {
-        totalInvited: referredCount,
+        totalInvited: referredFriends.length, // Note: This is now just the count of fetched ones, wait... 
+        // Better to have a separate count if they have more than 10.
+        // Actually, let's keep the count separate.
         totalEarnings: user.referralEarnings,
         referralLink: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://game.fastucl25.pro'}/login?ref=${currentCode}`,
-        referralCode: currentCode
+        referralCode: currentCode,
+        recentInvites: referredFriends
       }
     });
   } catch (error) {

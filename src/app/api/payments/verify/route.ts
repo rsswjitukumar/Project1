@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         }),
         prisma.user.update({
           where: { id: transaction.userId },
-          data: { walletBalance: { increment: transaction.amount } },
+          data: { depositBalance: { increment: transaction.amount } },
         }),
       ]);
 
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
             prisma.user.update({
               where: { id: referrer.id },
               data: {
-                walletBalance: { increment: 10 },
+                bonusBalance: { increment: 10 },
                 referralEarnings: { increment: 10 }
               }
             }),

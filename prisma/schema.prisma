@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -14,10 +14,12 @@ model User {
   password      String?
   name          String?
   role          String   @default("USER")
-  walletBalance Float    @default(0.0)
-  totalWinnings Float    @default(0.0)
-  referredBy    String?
-  referralCode  String?  @unique
+  depositBalance  Float    @default(0.0)
+  winningBalance  Float    @default(0.0)
+  bonusBalance    @default(0.0)
+  totalWinnings   Float    @default(0.0)
+  referredBy      String?
+  referralCode    String?  @unique
   referralEarnings Float @default(0.0)
   createdAt     DateTime @default(now())
   
@@ -47,6 +49,7 @@ model Transaction {
   status    String   // "PENDING", "SUCCESS", "FAILED"
   gateway   String   // "RAZORPAY", "PAYTM", "SYSTEM"
   orderId   String?  // Gateway Order ID
+  paymentDetails String? // UPI ID or Bank Info for withdrawals
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())

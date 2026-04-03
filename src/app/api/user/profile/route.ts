@@ -22,7 +22,9 @@ export async function GET() {
         id: true,
         username: true,
         phone: true,
-        walletBalance: true,
+        depositBalance: true,
+        winningBalance: true,
+        bonusBalance: true,
         referralCode: true
       }
     });
@@ -59,7 +61,9 @@ export async function GET() {
           id: true,
           username: true,
           phone: true,
-          walletBalance: true,
+          depositBalance: true,
+          winningBalance: true,
+          bonusBalance: true,
           referralCode: true
         }
       });

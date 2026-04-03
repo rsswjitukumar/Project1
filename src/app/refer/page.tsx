@@ -71,9 +71,9 @@ export default function ReferPage() {
           <Gift size={40} color="white" />
           <Sparkles size={20} color="var(--accent-gold)" style={{ position: 'absolute', top: '-10px', right: '-10px' }} />
         </div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '10px' }}>Get <span className="text-gradient">₹20 Rewards</span></h1>
+        <h1 style={{ fontSize: '2rem', marginBottom: '10px' }}>Get <span className="text-gradient">₹50 Rewards</span></h1>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '300px', lineHeight: '1.5' }}>
-          Invite your friends to LuckSpin Arena. When they register using your link, you instantly get ₹10, and you get another ₹10 when they make their first recharge!
+          Invite your friends to LuckSpin Arena. When they register using your link, you instantly get ₹50, and they get ₹10 signup bonus!
         </p>
       </div>
 
@@ -135,6 +135,24 @@ export default function ReferPage() {
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Total Bonus Earned</div>
         </div>
       </div>
+
+      {/* Recent Invites */}
+      {stats?.recentInvites && stats.recentInvites.length > 0 && (
+        <div style={{ marginTop: '30px' }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: 'var(--text-primary)' }}>Recently Joined</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {stats.recentInvites.map((invite: any, i: number) => (
+              <div key={i} className="glass-panel" style={{ padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${invite.username}&backgroundColor=b6e3f4`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
+                  <span style={{ fontWeight: 600 }}>{invite.username}</span>
+                </div>
+                <span style={{ fontSize: '0.8rem', color: 'var(--accent-green)', fontWeight: 600 }}>+₹50</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bottom Nav */}
       <nav style={{ position: 'fixed', bottom: 0, left: 0, width: '100%', display: 'flex', justifyContent: 'space-around', background: 'rgba(15, 16, 22, 0.95)', backdropFilter: 'blur(15px)', padding: '12px 0', borderTop: '1px solid rgba(255, 255, 255, 0.05)', zIndex: 100 }}>

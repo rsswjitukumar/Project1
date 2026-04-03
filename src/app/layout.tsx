@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Toaster } from 'react-hot-toast';
+import Script from 'next/script'; // Import Script
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,6 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
+        <Script 
+          src="https://checkout.razorpay.com/v1/checkout.js" 
+          strategy="beforeInteractive" 
+        />
         <main className="app-main">
           {children}
         </main>
