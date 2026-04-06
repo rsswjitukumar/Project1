@@ -51,20 +51,35 @@
   100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
 }
 
-/* Fishes Background */
-.fish {
+.realFish {
   position: absolute;
-  width: 60px;
-  height: 40px;
+  width: 100px;
   pointer-events: none;
-  animation: swimRight linear infinite;
+  animation: swimAcross linear infinite;
+  z-index: 1; /* Behind holes but in front of bg */
 }
 
-@keyframes swimRight {
-  0% { left: -100px; transform: scaleX(1); }
-  49% { transform: scaleX(1); }
-  50% { transform: scaleX(-1); }
-  100% { left: 110vw; transform: scaleX(-1); }
+.fishImg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+  animation: bob 3s ease-in-out infinite;
+}
+
+@keyframes swimAcross {
+  0% { left: -150px; transform: scaleX(1); }
+  100% { left: 110vw; transform: scaleX(1); }
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* Legacy fish class kept for compatibility if needed elsewhere, but cleaned up */
+.fish {
+  position: absolute;
+  pointer-events: none;
 }
 
 /* Sea Base */

@@ -122,16 +122,13 @@ export default function UnderseaEelHit() {
       ))}
       <div className={styles.overlayColor} />
       
-      {/* Background Fish Animations */}
-      <div className={styles.fish} style={{ top: '20%', animationDuration: '25s' }}>
-        <FishSVG color="#ff5733" />
-      </div>
-      <div className={styles.fish} style={{ top: '45%', animationDuration: '40s', animationDelay: '-10s' }}>
-        <FishSVG color="#33ffde" />
-      </div>
-      <div className={styles.fish} style={{ top: '70%', animationDuration: '30s', animationDelay: '-5s' }}>
-        <FishSVG color="#fcd34d" />
-      </div>
+      {/* Real Animated Fish Background */}
+      <RealFish type="clown" top="15%" duration="28s" delay="-2s" scale={0.7} />
+      <RealFish type="blue" top="35%" duration="45s" delay="-15s" scale={1.2} />
+      <RealFish type="yellow" top="60%" duration="35s" delay="-8s" scale={0.9} />
+      <RealFish type="angel" top="25%" duration="55s" delay="-25s" scale={1.1} />
+      <RealFish type="clown" top="75%" duration="32s" delay="-10s" scale={0.8} />
+      <RealFish type="yellow" top="50%" duration="40s" delay="-30s" scale={0.6} />
 
       {/* Decorative Bubbles */}
       {[...Array(15)].map((_, i) => (
@@ -244,14 +241,38 @@ export default function UnderseaEelHit() {
   );
 }
 
-function FishSVG({ color }: { color: string }) {
+function RealFish({ 
+  type, 
+  top, 
+  delay, 
+  duration, 
+  scale = 1 
+}: { 
+  type: 'clown' | 'blue' | 'yellow' | 'angel', 
+  top: string, 
+  delay: string, 
+  duration: string, 
+  scale?: number 
+}) {
+  const fishImages = {
+    clown: 'https://pngimg.com/uploads/fish/fish_PNG25154.png', 
+    blue: 'https://pngimg.com/uploads/fish/fish_PNG25162.png',
+    yellow: 'https://pngimg.com/uploads/fish/fish_PNG25143.png',
+    angel: 'https://pngimg.com/uploads/fish/fish_PNG25152.png'
+  };
+
   return (
-    <svg width="60" height="30" viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M50 20C50 28 40 35 25 35C10 35 0 28 0 20C0 12 10 5 25 5C40 5 50 12 50 20Z" fill={color} />
-      <path d="M45 20L60 10V30L45 20Z" fill={color} />
-      <circle cx="10" cy="15" r="3" fill="white" />
-      <circle cx="11" cy="15" r="1.5" fill="black" />
-    </svg>
+    <div 
+      className={styles.realFish} 
+      style={{ 
+        top, 
+        animationDuration: duration, 
+        animationDelay: delay,
+        transform: `scale(${scale})`
+      }}
+    >
+      <img src={fishImages[type]} alt="Tropical Fish" className={styles.fishImg} />
+    </div>
   );
 }
 
