@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         }),
         prisma.user.update({
           where: { id: transaction.userId },
-          data: { walletBalance: { increment: transaction.amount } }
+          data: { winningBalance: { increment: transaction.amount } }
         }),
         // Optional: Create a refund log transaction
         prisma.transaction.create({
