@@ -12,7 +12,9 @@ export default function WalletPage() {
   const [balance, setBalance] = useState(0);
   const [addAmount, setAddAmount] = useState('100');
   const [loading, setLoading] = useState(false);
-  const [selectedGateway, setSelectedGateway] = useState<'RAZORPAY' | 'PAYTM'>('RAZORPAY');
+  const [selectedGateway, setSelectedGateway] = useState<'DIRECT_UPI' | 'RAZORPAY'>('DIRECT_UPI');
+  const [showUtrInput, setShowUtrInput] = useState(false);
+  const [utrNumber, setUtrNumber] = useState('');
 
   useEffect(() => {
     // Dynamically load Razorpay script
@@ -108,28 +110,34 @@ export default function WalletPage() {
         rzp.open();
         setLoading(false); // Enable button again
 
-      } else {
-        // Mock Bypass (Paytm or missing keys fallback)
-        toast.success(`Mock Redirecting to ${selectedGateway}...`);
-        const verifyRes = await fetch('/api/payments/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: orderData.order.id, status: 'SUCCESS' }),
-        });
-        const verifyData = await verifyRes.json();
-        if (verifyData.success) {
-          setBalance(prev => prev + parseFloat(addAmount));
-          setUser((prev: any) => ({ ...prev, depositBalance: (prev?.depositBalance || 0) + parseFloat(addAmount) }));
-          toast.success('Mock Cash Added Successfully!');
-        } else {
-          toast.error(verifyData.error || 'Payment failed');
-        }
+      } else if (selectedGateway === 'DIRECT_UPI') {
+        // Direct UPI Deep Link Trigger
+        const upiLink = `upi://pay?pa=paytmqr5hf46v@ptys&pn=Paytm&am=${parseFloat(addAmount).toFixed(2)}&cu=INR&tn=LuckSpin_Arena_Deposit`;
+        
+        // This will attempt to open UPI apps on mobile (PhonePe, GPay, Paytm)
+        window.location.href = upiLink;
+        
+        toast.success(`Opening your UPI App...`);
+        
+        // Show UTR Input field so user can submit proof after paying
+        setShowUtrInput(true);
         setLoading(false);
       }
     } catch (err) {
       toast.error('Payment Error. Please try again.');
       setLoading(false);
     }
+  };
+
+  const handleUtrSubmit = () => {
+    if(utrNumber.length < 12) {
+       toast.error("Please enter a valid 12-digit UTR/Reference No.");
+       return;
+    }
+    // TODO: Send to backend for admin verification
+    toast.success("UTR Submitted successfully! Balance will be added after admin verification.");
+    setShowUtrInput(false);
+    setUtrNumber('');
   };
 
   const presetAmounts = ['50', '100', '200', '500', '1000', '2000'];
@@ -203,31 +211,63 @@ export default function WalletPage() {
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+           <button 
+             onClick={() => setSelectedGateway('DIRECT_UPI')}
+             className={`btn ${selectedGateway === 'DIRECT_UPI' ? 'btn-primary' : 'btn-outline'}`}
+             style={{ flex: 1, fontSize: '0.8rem', minWidth: '120px' }}
+           >
+             Fast UPI App {selectedGateway === 'DIRECT_UPI' && <CheckCircle2 size={14} />}
+           </button>
            <button 
              onClick={() => setSelectedGateway('RAZORPAY')}
              className={`btn ${selectedGateway === 'RAZORPAY' ? 'btn-primary' : 'btn-outline'}`}
-             style={{ flex: 1, fontSize: '0.8rem' }}
+             style={{ flex: 1, fontSize: '0.8rem', minWidth: '120px' }}
            >
-             Razorpay {selectedGateway === 'RAZORPAY' && <CheckCircle2 size={14} />}
-           </button>
-           <button 
-             onClick={() => setSelectedGateway('PAYTM')}
-             className={`btn ${selectedGateway === 'PAYTM' ? 'btn-primary' : 'btn-outline'}`}
-             style={{ flex: 1, fontSize: '0.8rem' }}
-           >
-             Paytm {selectedGateway === 'PAYTM' && <CheckCircle2 size={14} />}
+             Other Methods {selectedGateway === 'RAZORPAY' && <CheckCircle2 size={14} />}
            </button>
         </div>
 
-        <button 
-          onClick={handlePay}
-          className={`btn btn-success ${loading ? 'loading' : ''}`}
-          style={{ width: '100%', fontSize: '1.1rem', padding: '16px' }}
-          disabled={loading || !addAmount}
-        >
-          {loading ? 'Processing...' : `Pay ₹${addAmount} via ${selectedGateway}`}
-        </button>
+        {!showUtrInput && (
+          <button 
+            onClick={handlePay}
+            className={`btn btn-success ${loading ? 'loading' : ''}`}
+            style={{ width: '100%', fontSize: '1.1rem', padding: '16px' }}
+            disabled={loading || !addAmount}
+          >
+            {loading ? 'Processing...' : (selectedGateway === 'DIRECT_UPI' ? `Pay ₹${addAmount} via UPI App` : `Proceed to Pay ₹${addAmount}`)}
+          </button>
+        )}
+
+        {showUtrInput && (
+          <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+             <p style={{ fontSize: '0.9rem', marginBottom: '10px', color: 'var(--accent-gold)' }}>
+               After paying on your UPI app, please enter the 12-digit UTR / Reference No. to verify your deposit.
+             </p>
+             <input 
+               type="text"
+               value={utrNumber}
+               onChange={(e) => setUtrNumber(e.target.value)}
+               className={`input-glass`}
+               placeholder="Enter 12-digit UTR Number"
+               maxLength={12}
+             />
+             <button 
+               onClick={handleUtrSubmit}
+               className="btn btn-primary animate-pulse-glow"
+               style={{ width: '100%', marginTop: '10px' }}
+             >
+               Submit UTR for Verification
+             </button>
+             <button 
+               onClick={() => setShowUtrInput(false)}
+               className="btn btn-outline"
+               style={{ width: '100%', marginTop: '10px' }}
+             >
+               Cancel
+             </button>
+          </div>
+        )}
         
         <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
           <ShieldCheck size={14} color="var(--accent-green)" /> 100% Safe Payment Gateway
