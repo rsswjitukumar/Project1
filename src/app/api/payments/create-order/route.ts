@@ -26,31 +26,48 @@ export async function POST(request: Request) {
 
     let orderData: any = {};
 
-    if (gateway === 'RAZORPAY') {
-      const razorpay = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
-        key_secret: process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder'
-      });
-
+    if (gateway === 'CASHFREE') {
       try {
-        const options = {
-          amount: Math.round(parseFloat(amount) * 100), // paise
-          currency: "INR",
-          receipt: `rcpt_${userId.substring(0, 10)}_${Date.now()}`
-        };
-        const order = await razorpay.orders.create(options);
+        const cashfreeResponse = await fetch('https://api.cashfree.com/pg/orders', {
+          method: 'POST',
+          headers: {
+            'x-client-id': process.env.CASHFREE_APP_ID || '',
+            'x-client-secret': process.env.CASHFREE_SECRET_KEY || '',
+            'x-api-version': '2023-08-01',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            order_amount: parseFloat(amount),
+            order_currency: 'INR',
+            order_id: `order_${userId.substring(0, 8)}_${Date.now()}`,
+            customer_details: {
+              customer_id: userId,
+              customer_email: user.email || 'customer@example.com',
+              customer_phone: user.phone || '9999999999'
+            },
+            order_meta: {
+              return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://game.fastucl25.pro'}/wallet?status={order_status}`
+            }
+          })
+        });
+
+        const cfData = await cashfreeResponse.json();
+        
+        if (!cashfreeResponse.ok) {
+           console.error("Cashfree API Error:", cfData);
+           return NextResponse.json({ error: cfData.message || 'Cashfree Order Failed' }, { status: 400 });
+        }
+
         orderData = {
-          id: order.id,
-          amount: parseFloat(amount),
-          currency: order.currency
+          id: cfData.order_id,
+          payment_session_id: cfData.payment_session_id,
+          amount: cfData.order_amount,
+          currency: cfData.order_currency
         };
       } catch (err) {
-        console.warn("Razorpay API failed (likely missing keys). Mocking order for local testing.", err);
-        orderData = {
-          id: `order_mock_${Math.random().toString(36).substring(2, 9)}`,
-          amount: parseFloat(amount),
-          currency: "INR"
-        };
+        console.error("Cashfree request failed", err);
+        return NextResponse.json({ error: 'Failed to communicate with Cashfree' }, { status: 500 });
       }
     } else {
       orderData = {

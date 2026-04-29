@@ -12,19 +12,20 @@ export default function WalletPage() {
   const [balance, setBalance] = useState(0);
   const [addAmount, setAddAmount] = useState('100');
   const [loading, setLoading] = useState(false);
-  const [selectedGateway, setSelectedGateway] = useState<'DIRECT_UPI' | 'RAZORPAY'>('DIRECT_UPI');
+  const [selectedGateway, setSelectedGateway] = useState<'DIRECT_UPI' | 'QR_CODE'>('DIRECT_UPI');
   const [showUtrInput, setShowUtrInput] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
   const [utrNumber, setUtrNumber] = useState('');
 
   useEffect(() => {
-    // Dynamically load Razorpay script
-    const loadRazorpayScript = () => {
+    // Dynamically load Cashfree SDK script
+    const loadCashfreeScript = () => {
       const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
       script.async = true;
       document.body.appendChild(script);
     };
-    loadRazorpayScript();
+    loadCashfreeScript();
 
     // Fetch secure profile
     const fetchProfile = async () => {
@@ -52,76 +53,73 @@ export default function WalletPage() {
     
     setLoading(true);
     try {
-      // 1. Create Order
-      const orderRes = await fetch('/api/payments/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: addAmount, gateway: selectedGateway }),
-      });
-      const orderData = await orderRes.json();
-
-      if (!orderData.success) {
-         toast.error(orderData.error || 'Failed to initialize payment');
-         setLoading(false);
-         return;
-      }
-
-      if (selectedGateway === 'RAZORPAY' && orderData.order.id.startsWith('rzp_')) {
-        // Real Razorpay Flow
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
-          amount: orderData.order.amount * 100,
-          currency: orderData.order.currency,
-          name: "LuckSpin Arena",
-          description: "Add Cash to Wallet",
-          order_id: orderData.order.id,
-          handler: async function (response: any) {
-            // 2. Verify Payment
-            const verifyRes = await fetch('/api/payments/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                orderId: orderData.order.id, 
-                paymentId: response.razorpay_payment_id,
-                signature: response.razorpay_signature,
-                status: 'SUCCESS' 
-              }),
-            });
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              setBalance(prev => prev + parseFloat(addAmount));
-              setUser((prev: any) => ({ ...prev, depositBalance: (prev?.depositBalance || 0) + parseFloat(addAmount) }));
-              toast.success('Cash Added Successfully to your Beast Wallet!');
-            } else {
-              toast.error(verifyData.error || 'Payment verification failed');
-            }
-          },
-          prefill: {
-            name: user.username || "Gamer",
-            contact: user.phone || ""
-          },
-          theme: { color: "#6366f1" }
-        };
-
-        const rzp = new (window as any).Razorpay(options);
-        rzp.on('payment.failed', function (response: any){
-          toast.error(response.error.description || 'Payment Failed');
-        });
-        rzp.open();
-        setLoading(false); // Enable button again
-
-      } else if (selectedGateway === 'DIRECT_UPI') {
-        // Direct UPI Deep Link Trigger
+      if (selectedGateway === 'QR_CODE') {
         const upiLink = `upi://pay?pa=paytmqr5hf46v@ptys&pn=Paytm&am=${parseFloat(addAmount).toFixed(2)}&cu=INR&tn=LuckSpin_Arena_Deposit`;
         
-        // This will attempt to open UPI apps on mobile (PhonePe, GPay, Paytm)
-        window.location.href = upiLink;
-        
-        toast.success(`Opening your UPI App...`);
-        
-        // Show UTR Input field so user can submit proof after paying
+        setShowQRCode(true);
         setShowUtrInput(true);
         setLoading(false);
+        toast.success('Please scan the QR code to pay.');
+        return;
+
+      } else if (selectedGateway === 'DIRECT_UPI') {
+        // Now it uses REAL CASHFREE GATEWAY
+        toast.loading('Initializing Cashfree Payment...', { id: 'cf_init' });
+
+        const orderRes = await fetch('/api/payments/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: addAmount, gateway: 'CASHFREE' }),
+        });
+        
+        const orderData = await orderRes.json();
+        
+        if (!orderData.success) {
+           toast.error(orderData.error || 'Failed to initialize payment', { id: 'cf_init' });
+           setLoading(false);
+           return;
+        }
+
+        toast.success('Opening Cashfree Gateway!', { id: 'cf_init' });
+        
+        // Ensure Cashfree SDK is loaded
+        const cashfree = await (window as any).Cashfree({
+             mode: "production" // or sandbox
+        });
+        
+        let checkoutOptions = {
+             paymentSessionId: orderData.payment_session_id,
+             redirectTarget: "_modal",
+        };
+        
+        cashfree.checkout(checkoutOptions).then((result: any) => {
+             if(result.error){
+                 toast.error("Payment failed or cancelled!");
+                 setLoading(false);
+             }
+             if(result.redirect){
+                 console.log("Redirection")
+             }
+             if(result.paymentDetails){
+                 // VERIFY PAYMENT EXPLICITLY HERE IF ON MODAL
+                 toast.success("Payment Received & processing...");
+                 // Verification Call
+                 fetch('/api/payments/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: orderData.order_id })
+                 }).then(r => r.json()).then(data => {
+                    if(data.success) {
+                        toast.success('Cash Added Successfully!');
+                        setBalance(prev => prev + parseFloat(addAmount));
+                        setUser((prev: any) => ({ ...prev, depositBalance: (prev.depositBalance || 0) + parseFloat(addAmount) }));
+                    } else {
+                        toast.error(data.error || 'Payment Verification Failed');
+                    }
+                    setLoading(false);
+                 }).catch(() => setLoading(false));
+             }
+        });
       }
     } catch (err) {
       toast.error('Payment Error. Please try again.');
@@ -217,14 +215,18 @@ export default function WalletPage() {
              className={`btn ${selectedGateway === 'DIRECT_UPI' ? 'btn-primary' : 'btn-outline'}`}
              style={{ flex: 1, fontSize: '0.8rem', minWidth: '120px' }}
            >
-             Fast UPI App {selectedGateway === 'DIRECT_UPI' && <CheckCircle2 size={14} />}
+             Online Payment {selectedGateway === 'DIRECT_UPI' && <CheckCircle2 size={14} />}
            </button>
            <button 
-             onClick={() => setSelectedGateway('RAZORPAY')}
-             className={`btn ${selectedGateway === 'RAZORPAY' ? 'btn-primary' : 'btn-outline'}`}
+             onClick={() => {
+               setSelectedGateway('QR_CODE');
+               setShowQRCode(false);
+               setShowUtrInput(false);
+             }}
+             className={`btn ${selectedGateway === 'QR_CODE' ? 'btn-primary' : 'btn-outline'}`}
              style={{ flex: 1, fontSize: '0.8rem', minWidth: '120px' }}
            >
-             Other Methods {selectedGateway === 'RAZORPAY' && <CheckCircle2 size={14} />}
+             Other Methods (QR) {selectedGateway === 'QR_CODE' && <CheckCircle2 size={14} />}
            </button>
         </div>
 
@@ -241,6 +243,20 @@ export default function WalletPage() {
 
         {showUtrInput && (
           <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+             
+             {showQRCode && (
+               <div style={{ background: '#fff', padding: '15px', borderRadius: '12px', marginBottom: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                 <p style={{ color: '#000', fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '10px' }}>
+                   Scan & Pay ₹{addAmount}
+                 </p>
+                 <img 
+                   src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=paytmqr5hf46v@ptys&pn=Paytm&am=${parseFloat(addAmount).toFixed(2)}&cu=INR&tn=LuckSpin_Arena_Deposit`)}`} 
+                   alt="UPI QR Code" 
+                   style={{ width: '200px', height: '200px', objectFit: 'contain' }}
+                 />
+               </div>
+             )}
+
              <p style={{ fontSize: '0.9rem', marginBottom: '10px', color: 'var(--accent-gold)' }}>
                After paying on your UPI app, please enter the 12-digit UTR / Reference No. to verify your deposit.
              </p>
@@ -260,7 +276,10 @@ export default function WalletPage() {
                Submit UTR for Verification
              </button>
              <button 
-               onClick={() => setShowUtrInput(false)}
+               onClick={() => {
+                 setShowUtrInput(false);
+                 setShowQRCode(false);
+               }}
                className="btn btn-outline"
                style={{ width: '100%', marginTop: '10px' }}
              >
@@ -300,12 +319,24 @@ export default function WalletPage() {
       <div className={styles.paymentMethods}>
         <h3 className={styles.sectionTitle} style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>Supported Methods</h3>
         
-        <div className={styles.upiOption}>
+        <div 
+          className={styles.upiOption} 
+          onClick={() => {
+            if (parseFloat(addAmount) < 10) return toast.error("Minimum deposit is ₹10");
+            const upiLink = `upi://pay?pa=paytmqr5hf46v@ptys&pn=Paytm&am=${parseFloat(addAmount).toFixed(2)}&cu=INR&tn=LuckSpin_Arena_Deposit`;
+            window.location.href = upiLink;
+            setShowUtrInput(true);
+            setShowQRCode(false);
+            toast.success('Opening your UPI App...');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          style={{ cursor: 'pointer' }}
+        >
           <div className={styles.upiDetails}>
             <div className={styles.upiIcon} style={{ color: '#005f73' }}>UPI</div>
             <div>
               <div className={styles.upiName}>Paytm / PhonePe / GPay</div>
-              <div className={styles.upiSub}>Instant Deposit via Razorpay</div>
+              <div className={styles.upiSub}>Direct UPI App Deposit</div>
             </div>
           </div>
           <ChevronRight size={20} color="var(--text-secondary)" />

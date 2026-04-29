@@ -30,16 +30,25 @@ export async function POST(request: Request) {
     if (transaction.status === 'SUCCESS') return NextResponse.json({ error: 'Transaction already processed' }, { status: 400 });
 
     if (status === 'SUCCESS') {
-      // Very basic signature skeleton logic (uncomment to enforce)
-      if (paymentId && signature) {
-        const secret = process.env.RAZORPAY_KEY_SECRET;
-        if (secret && secret !== 'secret_placeholder') {
-          const expectedSignature = crypto.createHmac('sha256', secret)
-                                        .update(orderId + "|" + paymentId)
-                                        .digest('hex');
-          if (expectedSignature !== signature) {
-            return NextResponse.json({ error: 'Invalid Payment Signature (Rejecting due to forgery)' }, { status: 400 });
+      // CASHFREE VALIDATION API CALL
+      if (transaction.gateway === 'CASHFREE') {
+        try {
+          const cfVerifyRes = await fetch(`https://api.cashfree.com/pg/orders/${orderId}`, {
+            method: 'GET',
+            headers: {
+              'x-client-id': process.env.CASHFREE_APP_ID || '',
+              'x-client-secret': process.env.CASHFREE_SECRET_KEY || '',
+              'x-api-version': '2023-08-01',
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          });
+          const cfVerifyData = await cfVerifyRes.json();
+          if (cfVerifyData.order_status !== 'PAID') {
+             return NextResponse.json({ error: 'Cashfree Verification Failed: Payment not fully paid' }, { status: 400 });
           }
+        } catch (e) {
+          return NextResponse.json({ error: 'Failed to verify Cashfree payment' }, { status: 500 });
         }
       }
 
